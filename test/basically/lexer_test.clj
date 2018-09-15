@@ -1,7 +1,6 @@
 (ns basically.lexer-test
   (:require [clojure.test :refer :all]
-            [basically.lexer :refer :all])
-  (:import basically.lexer.Token))
+            [basically.lexer :refer :all]))
 
 (deftest lex-integers
   (is (= (lex "10 2 0 500 999999999")
@@ -37,11 +36,10 @@
           #basically.lexer.Token{:type :ident :value "I%"}])))
 
 (deftest lex-keywords
-  (is (= (lex "LET DATA IF THEN ELSE FOR TO STEP next WHILE WEND
+  (is (= (lex "LET IF THEN ELSE FOR TO STEP next WHILE WEND
                REPEAT UNTIL DO LOOP GOTO GOSUB ON def FN END
-               PRINT CLR NOT AND OR LEN RETURN input")
+               PRINT AND OR RETURN input CLR DATA READ GET STOP")
          [#basically.lexer.Token{:type :let :value "LET"}
-          #basically.lexer.Token{:type :data :value "DATA"}
           #basically.lexer.Token{:type :if :value "IF"}
           #basically.lexer.Token{:type :then :value "THEN"}
           #basically.lexer.Token{:type :else :value "ELSE"}
@@ -66,13 +64,15 @@
           #basically.lexer.Token{:type :newline :value \newline}
 
           #basically.lexer.Token{:type :print :value "PRINT"}
-          #basically.lexer.Token{:type :clr :value "CLR"}
-          #basically.lexer.Token{:type :not :value "NOT"}
           #basically.lexer.Token{:type :and :value "AND"}
           #basically.lexer.Token{:type :or :value "OR"}
-          #basically.lexer.Token{:type :len :value "LEN"}
+          #basically.lexer.Token{:type :return :value "RETURN"}
           #basically.lexer.Token{:type :input :value "input"}
-          #basically.lexer.Token{:type :return :value "RETURN"}])))
+          #basically.lexer.Token{:type :clr :value "CLR"}
+          #basically.lexer.Token{:type :data :value "DATA"}
+          #basically.lexer.Token{:type :read :value "READ"}
+          #basically.lexer.Token{:type :get :value "GET"}
+          #basically.lexer.Token{:type :stop :value "STOP"}])))
 
 (deftest lex-operators
   (is (= (lex "- + * / < <= = >= > <>")

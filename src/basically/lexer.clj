@@ -36,9 +36,9 @@
 (let [operators [\- \+ \* \/ \< \> \=]]
   (defn- is-operator? [c] (some #(= c %) operators)))
 
-(let [keywords [:let :data :if :then :else :for :to :step :next :while :wend
+(let [keywords [:let :if :then :else :for :to :step :next :while :wend
                 :repeat :until :do :loop :goto :gosub :on :def :fn :end
-                :print :clr :not :and :or :len :return :input]]
+                :print :and :or :return :input :clr :data :read :get :stop]]
   (defn- get-keyword
     "Convert an identifier to a BASIC keyword, if it is a keyword."
     [ident]
@@ -50,7 +50,7 @@
                \( :lparen
                \) :rparen
                \, :comma
-               \? :print}] ;; ? is a shortcut for print
+               \? :print}] ; ? is a shortcut for print
   (defn- is-symbol? [c] (some #(= c %) (keys symbols)))
   (defn- get-symbol-keyword [c] (get symbols c :error)))
 
@@ -98,7 +98,7 @@
   ([program] (scan-string (eat program) ""))
   ([program value]
    (if (empty? program)
-     [(->Token :error value) program] ;; Unterminated string
+     [(->Token :error value) program] ; Unterminated string
      (let [current (top program)]
        (case current
          \\ (scan-string (eat program 2) (str value (top program 2)))
@@ -108,24 +108,16 @@
 (defn- scan-token [program]
   (let [current (top program)]
     (cond
-      (is-whitespace? current)
-        [nil (eat program)]
-      (is-comment? program)
-        (scan-while (eat program 3) #(not= % \newline) :comment)
-      (or (is-integer? current) (= current \.))
-        (scan-number program)
-      (is-ident? current)
-        (scan-ident program)
-      (is-operator? current)
-        (scan-operator program)
-      (is-string? current)
-        (scan-string program)
-      (is-symbol? current)
-        [(->Token (get-symbol-keyword current) current) (eat program)]
-      (= current \newline)
-        [(->Token :newline current) (eat program)]
-      :else
-        [(->Token :error current) (eat program)])))
+      (is-whitespace? current) [nil (eat program)]
+      (is-comment? program) (scan-while (eat program 3) #(not= % \newline) :comment)
+      (or (is-integer? current) (= current \.)) (scan-number program)
+      (is-ident? current) (scan-ident program)
+      (is-operator? current) (scan-operator program)
+      (is-string? current) (scan-string program)
+      (is-symbol? current) [(->Token (get-symbol-keyword current) current)
+                            (eat program)]
+      (= current \newline) [(->Token :newline current) (eat program)]
+      :else [(->Token :error current) (eat program)])))
 
 (defn lex
   "Lex converts a string into a list of tokens."
