@@ -12,40 +12,33 @@
     (is (= ast
            [(map->Node {:label "10"
                         :type :print
-                        :opts {:print-newline? true}
                         :value [(map->Node {:label nil
                                             :type :string
-                                            :opts nil
                                             :value "Hello, world"})]})
             (map->Node {:label "20"
                         :type :print
-                        :opts {:print-newline? false}
                         :value [(map->Node {:label nil
                                             :type :string
-                                            :opts nil
-                                            :value "Goodbye, world"})]})
+                                            :value "Goodbye, world"})
+                                (map->Node {:label nil
+                                           :type :nobreak
+                                           :value nil})]})
             (map->Node {:label "30"
                         :type :print
-                        :opts {:print-newline? true}
                         :value [(map->Node {:label nil
                                             :type :string
-                                            :opts nil
                                             :value "A"})
                                 (map->Node {:label nil
                                             :type :tab-margin
-                                            :opts nil
                                             :value nil})
                                 (map->Node {:label nil
                                             :type :string
-                                            :opts nil
                                             :value "B"})
                                 (map->Node {:label nil
                                             :type :tab-margin
-                                            :opts nil
                                             :value nil})
                                 (map->Node {:label nil
                                             :type :string
-                                            :opts nil
                                             :value "C"})]})]))))
 
 (deftest parse-comment
@@ -53,33 +46,31 @@
 20 REM But I do get parsed because Ι have a label")
         ast (parse tokens)]
     (is (= ast [(map->Node {:label "10"
-                                       :type :noop
-                                       :opts nil
-                                       :value nil})
+                            :type :noop
+                            :value nil})
                 (map->Node {:label "20"
-                                       :type :noop
-                                       :opts nil
-                                       :value nil})]))))
+                            :type :noop
+                            :value nil})]))))
 
 (deftest parse-jump-statements
   (let [tokens (lex "10 GOTO 20
-20 GOSUB 10")
+20 GOSUB 30
+30 RETURN")
         ast (parse tokens)]
     (is (= ast
            [(map->Node {:label "10"
                         :type :goto
-                        :opts nil
                         :value (map->Node {:label nil
                                            :type :integer
-                                           :opts nil
                                            :value "20"})})
             (map->Node {:label "20"
                         :type :gosub
-                        :opts nil
                         :value (map->Node {:label nil
                                            :type :integer
-                                           :opts nil
-                                           :value "10"})})]))))
+                                           :value "30"})})
+            (map->Node {:label "30"
+                        :type :return
+                        :value nil})]))))
 
 (deftest parse-multiple-statements
   (let [tokens (lex "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"")
@@ -90,16 +81,15 @@
                                                 :label "10"
                                                 :value [(map->Node {:type :string
                                                                     :label nil
-                                                                    :value "Multiple "
-                                                                    :opts nil})]
-                                                :opts {:print-newline? false}})
+                                                                    :value "Multiple "})
+                                                        (map->Node {:type :nobreak
+                                                                    :label nil
+                                                                    :value nil})]})
                                     (map->Node {:type :print
                                                 :label "10" :value
                                                 [(map->Node {:type :string
                                                              :label nil
-                                                             :value "Statements on a line"
-                                                             :opts nil})]
-                                                :opts {:print-newline? true}})]})]))))
+                                                             :value "Statements on a line"})]})]})]))))
 
 ;; (deftest parse-expressions
 ;;   (let [tokens (lex "10 A%=2 + 2 * 10")
