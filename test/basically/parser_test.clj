@@ -91,11 +91,7 @@
                                                              :label nil
                                                              :value "Statements on a line"})]})]})]))))
 
-;; (deftest parse-expressions
-;;   (let [tokens (lex "10 A%=2 + 2 * 10")
-;;         ast (parse tokens)]
-;;     (is (= ast
-;;            [(map->Node {:label 10
-;;                         :type :ident
-;;                         :opts nil
-;;                         :value "A%"})]))))
+(deftest parse-expressions
+  (let [tokens (lex "10 A%=2 + 2 * 10")
+        ast (parse tokens)]
+    (println ast)))

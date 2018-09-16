@@ -3,7 +3,12 @@
 (defrecord Node [type label value])
 (defrecord NodeList [label nodes])
 
-(declare parse-node)
+(defrecord Expr [operator lhs rhs])
+
+(declare parse-node parse-literal)
+
+(let [operators [:- :+ :* :/ :exp :< :<= :> :>= :<> := :and :or :not]]
+  (defn- is-operator? [{:keys [type]}] (some #(= type %) operators)))
 
 (defn- new-node
   ([type] (->Node type nil nil))
@@ -50,7 +55,7 @@
    (if (or (empty? tokens) (is-end-delimiter? (first tokens)))
      [(assoc node :value values) tokens]
      (let [[current & rest] tokens]
-       ;; Print statements specifics. Extra semicolons get ignored and comma's are
+       ;; Print statements specifics. Semicolons mean no break and commas mean
        ;; a tabulator margin.
        (case (:type current)
          :semicolon (parse-print rest node (conj values (new-node :nobreak)))
@@ -74,12 +79,17 @@
         tokens (expect-end tokens)]
     [(assoc node :value value) tokens]))
 
-;; TODO: parse expressions
 (defn- parse-expr
-  [[{:keys [type value]} & rest :as tokens] label]
-  (case type
-    (:ident :integer ))
-  [(new-node type label value) rest])
+  [[current & rest :as tokens] label]
+  (if (or (empty? tokens) (is-end-delimiter? current))
+    [nil tokens]
+    (parse-expr rest label)))
+
+(defn- parse-literal [[{:keys [type value]} & [next & _ :as rest] :as tokens] label]
+  (cond
+    (and (= type :ident) (= next :lparen)) (parse-expr tokens label)
+    (is-operator? next) (parse-expr tokens label)
+    :else [(new-node type label value) rest]))
 
 (defn- parse-node
   ([tokens] (parse-node tokens nil))
@@ -87,13 +97,14 @@
    (case type
      :print (parse-print rest label)
      :comment [(new-node :noop label) rest]
-     :string [(new-node :string label value) rest]
      (:goto :gosub) (parse-jump rest label type)
-     :return (do
-               (expect-end rest)
-               [(new-node :return label) rest])
-     (:ident :integer :float :+ :-) (parse-expr tokens label)
-     :colon (parse-node rest label))))
+     (:return :new :clr :stop) ; Statements without arguments
+      (do
+        (expect-end rest)
+        [(new-node type label) rest])
+     (:ident :float :integer :string) (parse-literal tokens label)
+     :colon (parse-node rest label)
+     (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 
 (defn- parse-line
   ([[{:keys [type value]} & rest :as tokens]]

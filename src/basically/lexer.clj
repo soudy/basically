@@ -38,7 +38,7 @@
 
 (let [keywords [:let :if :then :else :for :to :step :next :while :wend
                 :repeat :until :do :loop :goto :gosub :on :def :fn :end
-                :print :and :or :return :input :clr :data :read :get :stop]]
+                :print :and :or :return :input :clr :data :read :get :stop :new]]
   (defn- get-keyword
     "Convert an identifier to a BASIC keyword, if it is a keyword."
     [ident]
@@ -50,6 +50,7 @@
                \( :lparen
                \) :rparen
                \, :comma
+               \^ :exp
                \? :print}] ; ? is a shortcut for print
   (defn- is-symbol? [c] (some #(= c %) (keys symbols)))
   (defn- get-symbol-keyword [c] (get symbols c :error)))
