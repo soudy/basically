@@ -60,7 +60,7 @@
   "Parse a print statement.
 
   Syntax:
-    PRINT <value> [<, | ;><value>...]
+    PRINT <value> {\",\" | \";\" | <value>}
 
   Examples:
     PRINT \"Hello, world!\"
@@ -94,40 +94,46 @@
         tokens (expect-end tokens)]
     [(new-node type label arg) tokens]))
 
-(declare parse-expr-part)
+(declare parse-expr-begin)
 
-(defn- parse-expr-value [[{:keys [type value]} & rest :as tokens]]
+(defn- parse-expr-value
+  "Parse an expression value.
+
+  Syntax:
+    <expr-value> ::= <unary-op> <expr> | \"(\" <expr> \")\" | <value>
+  "
+  [[{:keys [type value]} & rest :as tokens]]
   (cond
     (= type :lparen)
-      (let [[expr tokens] (parse-expr-part rest)
+      (let [[expr tokens] (parse-expr-begin rest)
             [_ tokens] (expect tokens [:rparen])]
         [expr tokens])
     (some #{type} [:integer :float :ident])
       [(new-node type nil value) rest]
     :else (throw (Exception. "?SYNTAX ERROR"))))
 
-(defn- parse-expr-part
-  ([tokens] (parse-expr-part tokens 0))
+(defn- parse-expr-begin
+  "Parse the beginning of an expression.
+
+  Syntax:
+    <expr> ::= <expr-value> {<operator> <expr-value>}
+  "
+  ([tokens] (parse-expr-begin tokens 0))
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
-     (parse-expr-part tokens prec expr)))
+     (parse-expr-begin tokens prec expr)))
   ([[current & rest :as tokens] operator-prec expr]
    (if-let [current-prec (get-prec current)]
      (if-not (>= current-prec operator-prec)
        [expr tokens]
        (let [new-prec (case (get-assoc current) :right current-prec :left (inc current-prec))
-             [expr2 tokens] (parse-expr-part rest new-prec)
+             [expr2 tokens] (parse-expr-begin rest new-prec)
              expr (->Expr (:type current) expr expr2)]
-         (parse-expr-part tokens operator-prec expr)))
+         (parse-expr-begin tokens operator-prec expr)))
      [expr tokens])))
 
-(defn- parse-expr
-  "Parse an expression.
-
-  <expr>
-  TODO: document grammar"
-  [tokens label]
-  (let [[expr tokens] (parse-expr-part tokens)]
+(defn- parse-expr [tokens label]
+  (let [[expr tokens] (parse-expr-begin tokens)]
     (expect-end tokens)
     [(new-node :expr label expr) tokens]))
 
