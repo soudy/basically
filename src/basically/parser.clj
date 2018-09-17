@@ -181,7 +181,7 @@
       (do
         (expect-end rest)
         [(new-node type label) rest])
-     (:ident :float :integer :fn :string)
+     (:ident :float :integer :string)
        (if (or (function-call? tokens) (operator? (first rest)))
          (parse-expr tokens label)
          [(new-node type label value) rest])
