@@ -1,8 +1,9 @@
 (ns basically.parser)
 
-(defrecord Node [type label value])
 (defrecord NodeList [label nodes])
+(defrecord Node [type label value])
 (defrecord Expr [operator lhs rhs])
+(defrecord FuncCall [name args user-function?])
 
 ;; Operators with their precedence and associativity
 (let [operators {:=  {:prec 0 :assoc :right}
@@ -87,8 +88,7 @@
 
   Examples:
     GOTO 10
-    GOSUB 20
-  "
+    GOSUB 20"
   [tokens label type]
   (let [[arg tokens] (expect-and-parse tokens [:integer])
         tokens (expect-end tokens)]
@@ -96,14 +96,45 @@
 
 (declare parse-expr-begin)
 
+(defn- parse-function-call-args
+  "Parse a function call's arguments.
+
+  Syntax:
+    <fn-call-args> ::= <expr> {\",\" <expr>}"
+  ([tokens] (parse-function-call-args tokens []))
+  ([[{:keys [type]} & _ :as tokens] args]
+   (if (= type :rparen)
+     [args tokens]
+     (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
+           new-args (conj args expr)]
+       (if (= type :comma)
+         (parse-function-call-args rest new-args)
+         [new-args tokens])))))
+
+(defn- parse-function-call
+  "Parse a function call.
+
+  Syntax:
+    <fn-call> ::= [FN] <ident> \"(\" <fn-call-args> \")\""
+  ([[{:keys [type]} & rest :as tokens]]
+   (if (= type :fn)
+     (parse-function-call rest true)
+     (parse-function-call tokens false)))
+  ([[{:keys [value]} & rest] user-function?]
+   (let [name value
+         [_ tokens] (expect rest [:lparen])
+         [args tokens] (parse-function-call-args tokens)
+         [_ tokens] (expect tokens [:rparen])]
+     [(->FuncCall name args user-function?) tokens])))
+
 (defn- parse-expr-value
   "Parse an expression value.
 
   Syntax:
-    <expr-value> ::= <unary-op> <expr> | \"(\" <expr> \")\" | <value>
-  "
+    <expr-value> ::= <unary-op> <expr> | \"(\" <expr> \")\" | <value> | <fn-call>"
   [[{:keys [type value]} & rest :as tokens]]
   (cond
+    (or (function-call? tokens) (= type :fn)) (parse-function-call tokens)
     (= type :lparen)
       (let [[expr tokens] (parse-expr-begin rest)
             [_ tokens] (expect tokens [:rparen])]
@@ -116,8 +147,7 @@
   "Parse the beginning of an expression.
 
   Syntax:
-    <expr> ::= <expr-value> {<operator> <expr-value>}
-  "
+    <expr> ::= <expr-value> {<operator> <expr-value>}"
   ([tokens] (parse-expr-begin tokens 0))
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
@@ -132,10 +162,11 @@
          (parse-expr-begin tokens operator-prec expr)))
      [expr tokens])))
 
-(defn- parse-expr [tokens label]
-  (let [[expr tokens] (parse-expr-begin tokens)]
-    (expect-end tokens)
-    [(new-node :expr label expr) tokens]))
+(defn- parse-expr
+  ([tokens] (parse-expr tokens nil))
+  ([tokens label]
+   (let [[expr tokens] (parse-expr-begin tokens)]
+     [(new-node :expr label expr) tokens])))
 
 (defn- parse-node
   ([tokens] (parse-node tokens nil))
@@ -148,9 +179,7 @@
       (do
         (expect-end rest)
         [(new-node type label) rest])
-     :lparen (parse-expr tokens label)
-     :string [(new-node :string label value) rest]
-     (:ident :float :integer)
+     (:ident :float :integer :fn :string)
        (if (or (function-call? tokens) (operator? (first rest)))
          (parse-expr tokens label)
          [(new-node type label value) rest])

@@ -1,8 +1,7 @@
 (ns basically.parser-test
   (:require [clojure.test :refer :all]
             [basically.lexer :refer :all]
-            [basically.parser :refer :all])
-  (:import (basically.parser NodeList Node Expr)))
+            [basically.parser :refer :all]))
 
 (deftest parse-print-strings
   (let [tokens (lex "10 PRINT \"Hello, world\"
@@ -147,3 +146,34 @@
                                                             :rhs (map->Node {:type :integer
                                                                              :label nil
                                                                              :value "3"})})})})]})]))))
+
+
+(deftest parse-function-expression
+  (let [tokens (lex "10 PRINT ABS(10) + FN SQRT(3.5 * 10)")
+        ast (parse tokens)]
+    (is (= ast
+           [(map->Node
+             {:type :print
+              :label "10"
+              :value [(map->Node
+                       {:type :expr
+                        :label nil
+                        :value (map->Expr
+                                {:operator :+
+                                 :lhs (map->FuncCall {:name "ABS"
+                                                      :args [(map->Node {:type :integer
+                                                                         :label nil
+                                                                         :value "10"})]
+                                                      :user-function? false})
+                                 :rhs (map->FuncCall {:name "SQRT"
+                                                      :args [(map->Node
+                                                              {:type :expr
+                                                               :label nil
+                                                               :value (map->Expr {:operator :*
+                                                                                  :lhs (map->Node {:type :float
+                                                                                                   :label nil
+                                                                                                   :value "3.5"})
+                                                                                  :rhs (map->Node {:type :integer
+                                                                                                   :label nil
+                                                                                                   :value "10"})})})]
+                                                      :user-function? true})})})]})]))))
