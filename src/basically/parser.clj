@@ -26,6 +26,9 @@
 (defn- is-function-call? [[current next & _]]
   (and (= (:type current) :ident) (= (:type next) :lparen)))
 
+(defn- is-end-delimiter? [{:keys [type]}]
+  (or (= type :newline) (= type :colon)))
+
 (defn- new-node
   ([type] (->Node type nil nil))
   ([type label] (->Node type label nil))
@@ -53,9 +56,6 @@
     (expect tokens [:newline :colon])
     tokens))
 
-(defn- is-end-delimiter? [{:keys [type]}]
-  (or (= type :newline) (= type :colon)))
-
 (defn- parse-print
   "Parse a print statement.
 
@@ -68,17 +68,16 @@
     PRINT A,B,C;
   "
   ([tokens label] (parse-print tokens (new-node :print label) []))
-  ([tokens node values]
-   (if (or (empty? tokens) (is-end-delimiter? (first tokens)))
+  ([[{:keys [type] :as current} & rest :as tokens] node values]
+   (if (or (empty? tokens) (is-end-delimiter? current))
      [(assoc node :value values) tokens]
-     (let [[{:keys [type]} & rest] tokens]
-       ;; Print statements specifics. Semicolons mean no break and commas mean
-       ;; a tabulator margin.
-       (case type
-         :semicolon (parse-print rest node (conj values (new-node :nobreak)))
-         :comma (parse-print rest node (conj values (new-node :tab-margin)))
-         (let [[value tokens] (parse-node tokens)]
-           (parse-print tokens node (conj values value))))))))
+     ;; Print statements specifics. Semicolons mean no break and commas mean
+     ;; a tabulator margin.
+     (case type
+       :semicolon (parse-print rest node (conj values (new-node :nobreak)))
+       :comma (parse-print rest node (conj values (new-node :tab-margin)))
+       (let [[value tokens] (parse-node tokens)]
+         (parse-print tokens node (conj values value)))))))
 
 (defn- parse-jump
   "Parse the GOTO and GOSUB statements.
