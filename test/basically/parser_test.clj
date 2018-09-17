@@ -160,20 +160,22 @@
                         :label nil
                         :value (map->Expr
                                 {:operator :+
-                                 :lhs (map->FuncCall {:name "ABS"
-                                                      :args [(map->Node {:type :integer
-                                                                         :label nil
-                                                                         :value "10"})]
-                                                      :user-function? false})
-                                 :rhs (map->FuncCall {:name "SQRT"
-                                                      :args [(map->Node
-                                                              {:type :expr
-                                                               :label nil
-                                                               :value (map->Expr {:operator :*
-                                                                                  :lhs (map->Node {:type :float
-                                                                                                   :label nil
-                                                                                                   :value "3.5"})
-                                                                                  :rhs (map->Node {:type :integer
-                                                                                                   :label nil
-                                                                                                   :value "10"})})})]
+                                 :lhs (map->FuncCall
+                                       {:name "ABS"
+                                        :args [(map->Node {:type :integer
+                                                           :label nil
+                                                           :value "10"})]
+                                        :user-function? false})
+                                 :rhs (map->FuncCall
+                                       {:name "SQRT"
+                                        :args [(map->Node
+                                                {:type :expr
+                                                 :label nil
+                                                 :value (map->Expr {:operator :*
+                                                                    :lhs (map->Node {:type :float
+                                                                                     :label nil
+                                                                                     :value "3.5"})
+                                                                    :rhs (map->Node {:type :integer
+                                                                                     :label nil
+                                                                                     :value "10"})})})]
                                                       :user-function? true})})})]})]))))
