@@ -97,28 +97,26 @@
 
 (defn- scan-string
   ([program] (scan-string (eat program) ""))
-  ([program value]
+  ([[current & _ :as program] value]
    (if (empty? program)
      [(->Token :error value) program] ; Unterminated string
-     (let [current (top program)]
-       (case current
-         \\ (scan-string (eat program 2) (str value (top program 2)))
-         \" [(->Token :string value) (eat program)]
-         (scan-string (eat program) (str value current)))))))
+     (case current
+       \\ (scan-string (eat program 2) (str value (top program 2)))
+       \" [(->Token :string value) (eat program)]
+       (scan-string (eat program) (str value current))))))
 
-(defn- scan-token [program]
-  (let [current (top program)]
-    (cond
-      (is-whitespace? current) [nil (eat program)]
-      (is-comment? program) (scan-while (eat program 3) #(not= % \newline) :comment)
-      (or (is-integer? current) (= current \.)) (scan-number program)
-      (is-ident? current) (scan-ident program)
-      (is-operator? current) (scan-operator program)
-      (is-string? current) (scan-string program)
-      (is-symbol? current) [(->Token (get-symbol-keyword current) current)
-                            (eat program)]
-      (= current \newline) [(->Token :newline current) (eat program)]
-      :else [(->Token :error current) (eat program)])))
+(defn- scan-token [[current & _ :as program]]
+  (cond
+    (is-whitespace? current) [nil (eat program)]
+    (is-comment? program) (scan-while (eat program 3) #(not= % \newline) :comment)
+    (or (is-integer? current) (= current \.)) (scan-number program)
+    (is-ident? current) (scan-ident program)
+    (is-operator? current) (scan-operator program)
+    (is-string? current) (scan-string program)
+    (is-symbol? current) [(->Token (get-symbol-keyword current) current)
+                          (eat program)]
+    (= current \newline) [(->Token :newline current) (eat program)]
+    :else [(->Token :error current) (eat program)]))
 
 (defn lex
   "Lex converts a string into a list of tokens."

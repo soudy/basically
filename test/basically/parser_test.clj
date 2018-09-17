@@ -2,7 +2,7 @@
   (:require [clojure.test :refer :all]
             [basically.lexer :refer :all]
             [basically.parser :refer :all])
-  (:import (basically.parser NodeList Node)))
+  (:import (basically.parser NodeList Node Expr)))
 
 (deftest parse-print-strings
   (let [tokens (lex "10 PRINT \"Hello, world\"
@@ -21,8 +21,8 @@
                                             :type :string
                                             :value "Goodbye, world"})
                                 (map->Node {:label nil
-                                           :type :nobreak
-                                           :value nil})]})
+                                            :type :nobreak
+                                            :value nil})]})
             (map->Node {:label "30"
                         :type :print
                         :value [(map->Node {:label nil
@@ -76,22 +76,74 @@
   (let [tokens (lex "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"")
         ast (parse tokens)]
     (is (= ast
-           [(map->NodeList {:label "10"
-                            :nodes [(map->Node {:type :print
-                                                :label "10"
-                                                :value [(map->Node {:type :string
-                                                                    :label nil
-                                                                    :value "Multiple "})
-                                                        (map->Node {:type :nobreak
-                                                                    :label nil
-                                                                    :value nil})]})
-                                    (map->Node {:type :print
-                                                :label "10" :value
-                                                [(map->Node {:type :string
-                                                             :label nil
-                                                             :value "Statements on a line"})]})]})]))))
+           [(map->NodeList
+             {:label "10"
+              :nodes [(map->Node {:type :print
+                                  :label "10"
+                                  :value [(map->Node {:type :string
+                                                      :label nil
+                                                      :value "Multiple "})
+                                          (map->Node {:type :nobreak
+                                                      :label nil
+                                                      :value nil})]})
+                      (map->Node {:type :print
+                                  :label "10" :value
+                                  [(map->Node {:type :string
+                                               :label nil
+                                               :value "Statements on a line"})]})]})]))))
 
 (deftest parse-expressions
-  (let [tokens (lex "10 A%=2 + 2 * 10")
+  (let [tokens (lex "10 A%=2 + 2 * 10
+20 PRINT 2^32 * (2 + 5 - (3))")
         ast (parse tokens)]
-    (println ast)))
+    (is (= ast
+           [(map->Node
+             {:type :expr
+              :label "10"
+              :value (map->Expr
+                      {:operator :=
+                       :lhs (map->Node {:type :ident :label nil :value "A%"})
+                       :rhs (map->Expr {:operator :+
+                                        :lhs (map->Node {:type :integer
+                                                         :label nil
+                                                         :value "2"})
+                                        :rhs (map->Expr
+                                              {:operator :*
+                                               :lhs (map->Node {:type :integer
+                                                                :label nil
+                                                                :value "2"})
+                                               :rhs (map->Node {:type :integer
+                                                                :label nil
+                                                                :value
+                                                                "10"})})})})})
+
+            (map->Node
+             {:type :print
+              :label "20"
+              :value [(map->Node {:type :expr
+                                  :label nil,
+                                  :value (map->Expr
+                                          {:operator :*
+                                           :lhs (map->Expr {:operator :exp
+                                                            :lhs (map->Node
+                                                                  {:type :integer
+                                                                   :label nil
+                                                                   :value "2"})
+                                                            :rhs (map->Node
+                                                                  {:type :integer
+                                                                   :label nil
+                                                                   :value "32"})})
+                                           :rhs (map->Expr {:operator :-
+                                                            :lhs (map->Expr
+                                                                  {:operator :+
+                                                                   :lhs (map->Node
+                                                                         {:type :integer
+                                                                          :label nil
+                                                                          :value "2"})
+                                                                   :rhs (map->Node
+                                                                         {:type :integer
+                                                                          :label nil
+                                                                          :value "5"})})
+                                                            :rhs (map->Node {:type :integer
+                                                                             :label nil
+                                                                             :value "3"})})})})]})]))))
