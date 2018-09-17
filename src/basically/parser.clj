@@ -19,14 +19,14 @@
                  :/ {:prec 5 :assoc :left}
                  :not {:prec 6 :assoc :left}
                  :exp {:prec 7 :assoc :right}}]
-  (defn- is-operator? [{:keys [type]}] (some #(= type %) (keys operators)))
+  (defn- operator? [{:keys [type]}] (some (partial = type) (keys operators)))
   (defn- get-prec [{:keys [type]}] (get-in operators [type :prec]))
   (defn- get-assoc [{:keys [type]}] (get-in operators [type :assoc])))
 
-(defn- is-function-call? [[current next & _]]
+(defn- function-call? [[current next & _]]
   (and (= (:type current) :ident) (= (:type next) :lparen)))
 
-(defn- is-end-delimiter? [{:keys [type]}]
+(defn- end-delimiter? [{:keys [type]}]
   (or (= type :newline) (= type :colon)))
 
 (defn- new-node
@@ -37,7 +37,7 @@
 (defn- expect
   "Expect the token on top to be any of `types'."
   [[{:keys [type value] :as current} & rest] types]
-  (if (some #(= type %) types)
+  (if (some #{type} types)
     [current rest]
     (throw (Exception. (str "?UNEXPECTED \"" value "\"")))))
 
@@ -52,7 +52,7 @@
 (defn- expect-end
   "Expect the end of a statement."
   [tokens]
-  (when-not (empty? tokens)
+  (when (seq tokens)
     (expect tokens [:newline :colon])
     tokens))
 
@@ -69,7 +69,7 @@
   "
   ([tokens label] (parse-print tokens (new-node :print label) []))
   ([[{:keys [type] :as current} & rest :as tokens] node values]
-   (if (or (empty? tokens) (is-end-delimiter? current))
+   (if (or (empty? tokens) (end-delimiter? current))
      [(assoc node :value values) tokens]
      ;; Print statements specifics. Semicolons mean no break and commas mean
      ;; a tabulator margin.
@@ -151,14 +151,13 @@
      :lparen (parse-expr tokens label)
      :string [(new-node :string label value) rest]
      (:ident :float :integer)
-       (if (or (is-function-call? tokens) (is-operator? (first rest)))
+       (if (or (function-call? tokens) (operator? (first rest)))
          (parse-expr tokens label)
          [(new-node type label value) rest])
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 
-(defn- parse-line
-  ([[{:keys [type value]} & rest :as tokens]]
+(defn- parse-line ([[{:keys [type value]} & rest :as tokens]]
    ;; If the first token of the line is an integer, set the label to that
    ;; number.
    (if (= type :integer)

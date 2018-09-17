@@ -1,4 +1,5 @@
-(ns basically.lexer)
+(ns basically.lexer
+  (:refer-clojure :exclude [integer? symbol? string?]))
 
 (use '[clojure.string :only [lower-case join]])
 
@@ -16,25 +17,25 @@
 
 (let [zero (int \0)
       nine (int \9)]
-  (defn- is-integer? [c] (<= zero (int c) nine)))
+  (defn- integer? [c] (<= zero (int c) nine)))
 
 (let [lowercase-a (int \a) lowercase-z (int \z)
       uppercase-a (int \A) uppercase-z (int \Z)]
-  (defn- is-ident? [c]
+  (defn- ident? [c]
     (or (<= lowercase-a (int c) lowercase-z)
         (<= uppercase-a (int c) uppercase-z)
-        (is-integer? c)
+        (integer? c)
         (= c \$)
         (= c \%))))
 
 (let [whitespace [\tab \space \return]]
-  (defn- is-whitespace? [c] (some #(= c %) whitespace)))
+  (defn- whitespace? [c] (some (partial = c) whitespace)))
 
-(defn- is-comment? [program]
+(defn- comment? [program]
   (= (lower-case (top program 3)) "rem"))
 
 (let [operators [\- \+ \* \/ \< \> \=]]
-  (defn- is-operator? [c] (some #(= c %) operators)))
+  (defn- operator? [c] (some (partial = c) operators)))
 
 (let [keywords [:let :if :then :else :for :to :step :next :while :wend
                 :repeat :until :do :loop :goto :gosub :on :def :fn :end
@@ -52,10 +53,10 @@
                \, :comma
                \^ :exp
                \? :print}] ; ? is a shortcut for print
-  (defn- is-symbol? [c] (some #(= c %) (keys symbols)))
+  (defn- symbol? [c] (some (partial = c) (keys symbols)))
   (defn- get-symbol-keyword [c] (get symbols c :error)))
 
-(defn- is-string? [c] (= c \"))
+(defn- string? [c] (= c \"))
 
 (defn- scan-while
   "Scan the program while a condition is true. When this condition is no longer
@@ -74,17 +75,17 @@
   we find a `.' after scanning an integer. If so, it will be considered a float
   and we will scan for integers again to determine the fractional part."
   [program]
-  (let [[token program] (scan-while program is-integer? :integer)]
+  (let [[token program] (scan-while program integer? :integer)]
     (if (= (top program) \.)
       ;; A dot after integer literal means a float, so scan-while again for the
       ;; fractional part and join them together to get the float value.
-      (let [[decimals program] (scan-while (eat program) is-integer? :integer)
+      (let [[decimals program] (scan-while (eat program) integer? :integer)
             float-value (str (:value token) "." (:value decimals))]
         [(->Token :float float-value) program])
       [token program])))
 
 (defn- scan-ident [program]
-  (let [[token program] (scan-while program is-ident? :ident)]
+  (let [[token program] (scan-while program ident? :ident)]
     (if-let [keyword (get-keyword (:value token))]
       [(assoc token :type keyword) program]
       [token program])))
@@ -107,13 +108,13 @@
 
 (defn- scan-token [[current & _ :as program]]
   (cond
-    (is-whitespace? current) [nil (eat program)]
-    (is-comment? program) (scan-while (eat program 3) #(not= % \newline) :comment)
-    (or (is-integer? current) (= current \.)) (scan-number program)
-    (is-ident? current) (scan-ident program)
-    (is-operator? current) (scan-operator program)
-    (is-string? current) (scan-string program)
-    (is-symbol? current) [(->Token (get-symbol-keyword current) current)
+    (whitespace? current) [nil (eat program)]
+    (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
+    (or (integer? current) (= current \.)) (scan-number program)
+    (ident? current) (scan-ident program)
+    (operator? current) (scan-operator program)
+    (string? current) (scan-string program)
+    (symbol? current) [(->Token (get-symbol-keyword current) current)
                           (eat program)]
     (= current \newline) [(->Token :newline current) (eat program)]
     :else [(->Token :error current) (eat program)]))
