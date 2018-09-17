@@ -156,7 +156,9 @@
    (if-let [current-prec (get-prec current)]
      (if-not (>= current-prec operator-prec)
        [expr tokens]
-       (let [new-prec (case (get-assoc current) :right current-prec :left (inc current-prec))
+       (let [new-prec (case (get-assoc current)
+                        :right current-prec
+                        :left (inc current-prec))
              [rhs tokens] (parse-expr-begin rest new-prec)
              expr (->Expr (:type current) expr rhs)]
          (parse-expr-begin tokens operator-prec expr)))
