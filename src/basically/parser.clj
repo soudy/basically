@@ -2,27 +2,10 @@
 
 (defrecord NodeList [label nodes])
 (defrecord Node [type label value])
+
 (defrecord Expr [operator lhs rhs])
 (defrecord FuncCall [name args user-function?])
-
-;; Operators with their precedence and associativity
-(let [operators {:=  {:prec 0 :assoc :right}
-                 :< {:prec 1 :assoc :right}
-                 :<= {:prec 1 :assoc :right}
-                 :> {:prec 1 :assoc :right}
-                 :>= {:prec 1 :assoc :right}
-                 :<> {:prec 1 :assoc :right}
-                 :or {:prec 2 :assoc :right}
-                 :and {:prec 3 :assoc :right}
-                 :- {:prec 4 :assoc :left}
-                 :+ {:prec 4 :assoc :left}
-                 :* {:prec 5 :assoc :left}
-                 :/ {:prec 5 :assoc :left}
-                 :not {:prec 6 :assoc :left}
-                 :exp {:prec 7 :assoc :right}}]
-  (defn- operator? [{:keys [type]}] (some (partial = type) (keys operators)))
-  (defn- get-prec [{:keys [type]}] (get-in operators [type :prec]))
-  (defn- get-assoc [{:keys [type]}] (get-in operators [type :assoc])))
+(defrecord IfStmt [condition body])
 
 (defn- function-call? [[current next & _]]
   (and (= (:type current) :ident) (= (:type next) :lparen)))
@@ -68,7 +51,8 @@
     PRINT 2;4
     PRINT A,B,C;
   "
-  ([tokens label] (parse-print tokens (new-node :print label) []))
+  ([tokens label]
+   (parse-print tokens (new-node :print label) []))
   ([[{:keys [type] :as current} & rest :as tokens] node values]
    (if (or (empty? tokens) (end-delimiter? current))
      [(assoc node :value values) tokens]
@@ -94,6 +78,25 @@
         tokens (expect-end tokens)]
     [(new-node type label arg) tokens]))
 
+;; Operators with their precedence and associativity
+(let [operators {:=  {:prec 0 :assoc :right}
+                 :or {:prec 1 :assoc :right}
+                 :and {:prec 2 :assoc :right}
+                 :< {:prec 3 :assoc :right}
+                 :<= {:prec 3 :assoc :right}
+                 :> {:prec 3 :assoc :right}
+                 :>= {:prec 3 :assoc :right}
+                 :<> {:prec 3 :assoc :right}
+                 :- {:prec 4 :assoc :left}
+                 :+ {:prec 4 :assoc :left}
+                 :* {:prec 5 :assoc :left}
+                 :/ {:prec 5 :assoc :left}
+                 :not {:prec 6 :assoc :left}
+                 :exp {:prec 7 :assoc :right}}]
+  (defn- operator? [{:keys [type]}] (some (partial = type) (keys operators)))
+  (defn- get-prec [{:keys [type]}] (get-in operators [type :prec]))
+  (defn- get-assoc [{:keys [type]}] (get-in operators [type :assoc])))
+
 (declare parse-expr-begin)
 
 (defn- parse-function-call-args
@@ -101,7 +104,8 @@
 
   Syntax:
     <fn-call-args> ::= <expr> {\",\" <expr>}"
-  ([tokens] (parse-function-call-args tokens []))
+  ([tokens]
+   (parse-function-call-args tokens []))
   ([[{:keys [type]} & _ :as tokens] args]
    (if (= type :rparen)
      [args tokens]
@@ -139,7 +143,7 @@
       (let [[expr tokens] (parse-expr-begin rest)
             [_ tokens] (expect tokens [:rparen])]
         [expr tokens])
-    (some #{type} [:integer :float :ident])
+    (some #{type} [:integer :float :ident :string])
       [(new-node type nil value) rest]
     :else (throw (Exception. "?SYNTAX ERROR"))))
 
@@ -148,7 +152,8 @@
 
   Syntax:
     <expr> ::= <expr-value> {<operator> <expr-value>}"
-  ([tokens] (parse-expr-begin tokens 0))
+  ([tokens]
+   (parse-expr-begin tokens 0))
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
      (parse-expr-begin tokens prec expr)))
@@ -165,13 +170,29 @@
      [expr tokens])))
 
 (defn- parse-expr
-  ([tokens] (parse-expr tokens nil))
+  ([tokens]
+   (parse-expr tokens nil))
   ([tokens label]
    (let [[expr tokens] (parse-expr-begin tokens)]
      [(new-node :expr label expr) tokens])))
 
+(defn- parse-if
+  "Parse an if statement.
+
+  Syntax:
+    IF <expr> THEN <expr> | IF <expr> GOTO <integer>"
+  [tokens label]
+  (let [[condition [{:keys [type]} & rest :as tokens]] (parse-expr tokens)]
+    (expect tokens [:then :goto])
+    (let [[body tokens] (if (= type :goto)
+                          (parse-jump rest nil :goto)
+                          (parse-node rest))]
+      (expect-end tokens)
+      [(new-node :if label (->IfStmt condition body)) tokens])))
+
 (defn- parse-node
-  ([tokens] (parse-node tokens nil))
+  ([tokens]
+   (parse-node tokens nil))
   ([[{:keys [type value]} & rest :as tokens] label]
    (case type
      :print (parse-print rest label)
@@ -185,6 +206,7 @@
        (if (or (function-call? tokens) (operator? (first rest)))
          (parse-expr tokens label)
          [(new-node type label value) rest])
+     :if (parse-if rest label)
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 
@@ -203,7 +225,8 @@
        (parse-line tokens (conj nodes node) label)))))
 
 (defn parse
-  ([tokens] (parse tokens []))
+  ([tokens]
+   (parse tokens []))
   ([tokens ast]
    (if (empty? tokens)
      ast

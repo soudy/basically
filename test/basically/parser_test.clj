@@ -4,10 +4,9 @@
             [basically.parser :refer :all]))
 
 (deftest parse-print-strings
-  (let [tokens (lex "10 PRINT \"Hello, world\"
+  (let [ast (-> "10 PRINT \"Hello, world\"
 20 PRINT \"Goodbye, world\";
-30 ? \"A\",\"B\",\"C\"")
-        ast (parse tokens)]
+30 ? \"A\",\"B\",\"C\"" lex parse)]
     (is (= ast
            [(map->Node {:label "10"
                         :type :print
@@ -41,9 +40,8 @@
                                             :value "C"})]})]))))
 
 (deftest parse-comment
-  (let [tokens (lex "10 REM I don't do anything
-20 REM But I do get parsed because Ι have a label")
-        ast (parse tokens)]
+  (let [ast (-> "10 REM I don't do anything
+20 REM But I do get parsed because Ι have a label" lex parse)]
     (is (= ast [(map->Node {:label "10"
                             :type :noop
                             :value nil})
@@ -52,10 +50,9 @@
                             :value nil})]))))
 
 (deftest parse-jump-statements
-  (let [tokens (lex "10 GOTO 20
+  (let [ast (-> "10 GOTO 20
 20 GOSUB 30
-30 RETURN")
-        ast (parse tokens)]
+30 RETURN" lex parse)]
     (is (= ast
            [(map->Node {:label "10"
                         :type :goto
@@ -72,8 +69,7 @@
                         :value nil})]))))
 
 (deftest parse-multiple-statements
-  (let [tokens (lex "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"")
-        ast (parse tokens)]
+  (let [ast (-> "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"" lex parse)]
     (is (= ast
            [(map->NodeList
              {:label "10"
@@ -92,9 +88,8 @@
                                                :value "Statements on a line"})]})]})]))))
 
 (deftest parse-expressions
-  (let [tokens (lex "10 A%=2 + 2 * 10
-20 PRINT 2^32 * (2 + 5 - (3))")
-        ast (parse tokens)]
+  (let [ast (-> "10 A%=2 + 2 * 10
+20 PRINT 2^32 * (2 + 5 - (3))" lex parse)]
     (is (= ast
            [(map->Node
              {:type :expr
@@ -149,8 +144,7 @@
 
 
 (deftest parse-function-expression
-  (let [tokens (lex "10 PRINT ABS(10) + FN SQRT(3.5 * 10)")
-        ast (parse tokens)]
+  (let [ast (-> "10 PRINT ABS(10) + FN SQRT(3.5 * 10)" lex parse)]
     (is (= ast
            [(map->Node
              {:type :print
@@ -179,3 +173,63 @@
                                                                                      :label nil
                                                                                      :value "10"})})})]
                                                       :user-function? true})})})]})]))))
+
+
+(deftest parse-if-statement
+  (let [ast (-> "10 IF A < B AND B < C THEN 20
+20 IF A=\"\" OR B=\"\" GOTO 30" lex parse)]
+    (is (= ast
+           [(map->Node
+             {:type :if
+              :label "10"
+              :value (map->IfStmt
+                      {:condition (map->Node
+                                   {:type :expr,
+                                    :label nil,
+                                    :value (map->Expr
+                                            {:operator :and
+                                             :lhs (map->Expr {:operator :<
+                                                              :lhs (map->Node {:type :ident
+                                                                               :label nil
+                                                                               :value "A"})
+                                                              :rhs (map->Node {:type :ident
+                                                                               :label nil
+                                                                               :value "B"})})
+                                             :rhs (map->Expr {:operator :<
+                                                              :lhs (map->Node {:type :ident
+                                                                               :label nil
+                                                                               :value "B"})
+                                                              :rhs (map->Node {:type :ident
+                                                                               :label nil
+                                                                               :value "C"})})})})
+                       :body (map->Node {:type :integer
+                                         :label nil
+                                         :value "20"})})})
+            (map->Node
+             {:type :if
+              :label "20",
+              :value
+              (map->IfStmt
+               {:condition (map->Node {:type :expr
+                                       :label nil
+                                       :value (map->Expr
+                                               {:operator :=
+                                                :lhs (map->Node {:type :ident
+                                                                 :label nil
+                                                                 :value "A"})
+                                                :rhs (map->Expr {:operator :=,
+                                                                 :lhs (map->Expr {:operator :or
+                                                                                  :lhs (map->Node {:type :string
+                                                                                                   :label nil
+                                                                                                   :value ""})
+                                                                                  :rhs (map->Node {:type :ident
+                                                                                                   :label nil
+                                                                                                   :value "B"})})
+                                                                 :rhs (map->Node {:type :string
+                                                                                  :label nil
+                                                                                  :value ""})})})})
+                :body (map->Node {:type :goto
+                                  :label nil
+                                  :value (map->Node {:type :integer
+                                                     :label nil
+                                                     :value "30"})})})})]))))
