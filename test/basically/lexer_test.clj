@@ -37,13 +37,12 @@
           (map->Token {:type :ident :value "I%"})])))
 
 (deftest lex-keywords
-  (is (= (lex "LET IF THEN ELSE FOR TO STEP next WHILE WEND
+  (is (= (lex "LET IF THEN FOR TO STEP next WHILE WEND
                REPEAT UNTIL DO LOOP GOTO GOSUB ON def FN END
                PRINT AND OR RETURN input CLR DATA READ GET STOP NEW")
          [(map->Token {:type :let :value "LET"})
           (map->Token {:type :if :value "IF"})
           (map->Token {:type :then :value "THEN"})
-          (map->Token {:type :else :value "ELSE"})
           (map->Token {:type :for :value "FOR"})
           (map->Token {:type :to :value "TO"})
           (map->Token {:type :step :value "STEP"})

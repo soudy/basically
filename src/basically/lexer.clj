@@ -37,7 +37,7 @@
 (let [operators [\- \+ \* \/ \< \> \=]]
   (defn- operator? [c] (some (partial = c) operators)))
 
-(let [keywords [:let :if :then :else :for :to :step :next :while :wend
+(let [keywords [:let :if :then :for :to :step :next :while :wend
                 :repeat :until :do :loop :goto :gosub :on :def :fn :end
                 :print :and :or :return :input :clr :data :read :get :stop :new]]
   (defn- get-keyword
