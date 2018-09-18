@@ -233,3 +233,36 @@
                                   :value (map->Node {:type :integer
                                                      :label nil
                                                      :value "30"})})})})]))))
+
+(deftest parse-input-statement
+  (let [ast (-> "10 INPUT \"How many? \"; A%
+20 INPUT A, B, C
+30 INPUT \"Two things please \"; A$, B$" lex parse)]
+    (is (= ast
+           [(map->Node {:type "10"
+                        :label :input
+                        :value (map->InputStmt {:message "How many? "
+                                                :variables [(map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "A%"})]})})
+            (map->Node {:type "20"
+                        :label :input
+                        :value (map->InputStmt {:message nil
+                                                :variables [(map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "A"})
+                                                            (map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "B"})
+                                                            (map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "C"}) ]})})
+            (map->Node {:type "30"
+                        :label :input
+                        :value (map->InputStmt {:message "Two things please "
+                                                :variables [(map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "A$"})
+                                                            (map->Node {:type :ident
+                                                                        :label nil
+                                                                        :value "B$"}) ]})})]))))

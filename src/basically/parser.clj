@@ -6,6 +6,7 @@
 (defrecord Expr [operator lhs rhs])
 (defrecord FuncCall [name args user-function?])
 (defrecord IfStmt [condition body])
+(defrecord InputStmt [message variables])
 
 (defn- function-call? [[current next & _]]
   (and (= (:type current) :ident) (= (:type next) :lparen)))
@@ -20,18 +21,23 @@
 
 (defn- expect
   "Expect the token on top to be any of `types'."
-  [[{:keys [type value] :as current} & rest] types]
+  ([[{:keys [value]} & _ :as tokens] types]
+   (expect tokens types (str "?UNEXPECTED \"" value "\"")))
+  ([[{:keys [type value] :as current} & rest] types message]
   (if (some #{type} types)
     [current rest]
-    (throw (Exception. (str "?UNEXPECTED \"" value "\"")))))
+    (throw (Exception. message)))))
 
 (declare parse-node)
 
 (defn- expect-and-parse
   "Expect the token on top to be any of `types' and parse it."
-  [tokens types]
-  (expect tokens types)
-  (parse-node tokens))
+  ([tokens types]
+   (expect tokens types)
+   (parse-node tokens))
+  ([tokens types message]
+   (expect tokens types message)
+   (parse-node tokens)))
 
 (defn- expect-end
   "Expect the end of a statement."
@@ -63,6 +69,33 @@
        :comma (parse-print rest node (conj values (new-node :tab-margin)))
        (let [[value tokens] (parse-node tokens)]
          (parse-print tokens node (conj values value)))))))
+
+(defn- parse-input
+  "Parse an input statement.
+
+  Syntax:
+    INPUT [<string>] <ident> {\",\" <ident>}
+
+  Examples:
+    INPUT \"How many? \"; A%
+    INPUT A, B, C
+    INPUT \"Enter 2 things please \"; A$, B$"
+  ([[{:keys [type value]} & rest :as tokens] label]
+   (expect tokens [:string :ident] "?ILLEGAL DIRECT ERROR")
+   (if (= type :string)
+     (let [[_ tokens] (expect rest [:semicolon])]
+       (parse-input tokens label value []))
+     (parse-input tokens label nil [])))
+  ([[current & _ :as tokens] label print-message variables]
+   (if (or (empty? tokens) (end-delimiter? current))
+     [(new-node label :input (->InputStmt print-message variables)) tokens]
+     (let [[variable [current & rest :as tokens]] (expect-and-parse tokens [:ident])
+           new-variables (conj variables variable)]
+       (if (= (:type current) :comma)
+         (parse-input rest label print-message new-variables)
+         (do
+           (expect-end tokens)
+           [(new-node label :input (->InputStmt print-message new-variables)) tokens]))))))
 
 (defn- parse-jump
   "Parse the GOTO and GOSUB statements.
@@ -196,6 +229,7 @@
   ([[{:keys [type value]} & rest :as tokens] label]
    (case type
      :print (parse-print rest label)
+     :input (parse-input rest label)
      :comment [(new-node :noop label) rest]
      (:goto :gosub) (parse-jump rest label type)
      (:return :new :clr :stop) ; Statements without arguments
