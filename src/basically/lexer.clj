@@ -61,14 +61,15 @@
 (defn- scan-while
   "Scan the program while a condition is true. When this condition is no longer
   true, return a token with the provided token type."
-  ([program condition token-type] (scan-while program condition token-type ""))
+  ([program condition token-type]
+   (scan-while program condition token-type ""))
   ([program condition token-type value]
    (if (empty? program)
      [(->Token token-type value) program]
      (let [current (top program)]
        (if-not (condition current)
          [(->Token token-type value) program]
-         (scan-while (eat program) condition token-type (str value current)))))))
+         (recur (eat program) condition token-type (str value current)))))))
 
 (defn- scan-number
   "Scan a number. A number can be an integer or a float, which is decided when
@@ -97,14 +98,15 @@
       [(->Token (keyword operator) operator) (eat program)])))
 
 (defn- scan-string
-  ([program] (scan-string (eat program) ""))
+  ([program]
+   (scan-string (eat program) ""))
   ([[current & _ :as program] value]
    (if (empty? program)
      [(->Token :error value) program] ; Unterminated string
      (case current
-       \\ (scan-string (eat program 2) (str value (top program 2)))
+       \\ (recur (eat program 2) (str value (top program 2)))
        \" [(->Token :string value) (eat program)]
-       (scan-string (eat program) (str value current))))))
+       (recur (eat program) (str value current))))))
 
 (defn- scan-token [[current & _ :as program]]
   (cond
@@ -127,6 +129,6 @@
      tokens
      (let [[token program] (scan-token program)]
        (if-not (nil? token)
-         (lex program (conj tokens token))
+         (recur program (conj tokens token))
          ;; If we get no token, we're skipping whitespace or comment
-         (lex program tokens))))))
+         (recur program tokens))))))

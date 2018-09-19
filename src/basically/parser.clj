@@ -65,7 +65,7 @@
        :semicolon (parse-print rest node (conj values (new-node :nobreak)))
        :comma (parse-print rest node (conj values (new-node :tab-margin)))
        (let [[value tokens] (parse-node tokens)]
-         (parse-print tokens node (conj values value)))))))
+         (recur tokens node (conj values value)))))))
 
 (defn- parse-input
   "Parse an input statement.
@@ -89,7 +89,7 @@
      (let [[variable [current & rest :as tokens]] (expect-and-parse tokens [:ident])
            new-variables (conj variables variable)]
        (if (= (:type current) :comma)
-         (parse-input rest label print-message new-variables)
+         (recur rest label print-message new-variables)
          (do
            (expect-end tokens)
            [(new-node label :input (->InputStmt print-message new-variables)) tokens]))))))
@@ -142,7 +142,7 @@
      (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
            new-args (conj args expr)]
        (if (= type :comma)
-         (parse-function-call-args rest new-args)
+         (recur rest new-args)
          [new-args tokens])))))
 
 (defn- parse-function-call
@@ -196,7 +196,7 @@
                         :left (inc current-prec))
              [rhs tokens] (parse-expr-begin rest new-prec)
              expr (->Expr (:type current) expr rhs)]
-         (parse-expr-begin tokens operator-prec expr)))
+         (recur tokens operator-prec expr)))
      [expr tokens])))
 
 (defn- parse-expr
@@ -273,7 +273,7 @@
        [(nth nodes 0) rest]
        [(->NodeList label nodes) rest])
      (let [[node tokens] (parse-node tokens label)]
-       (parse-line tokens (conj nodes node) label)))))
+       (recur tokens (conj nodes node) label)))))
 
 (defn parse
   ([tokens]
@@ -282,4 +282,4 @@
    (if (empty? tokens)
      ast
      (let [[node tokens] (parse-line tokens)]
-       (parse tokens (conj ast node))))))
+       (recur tokens (conj ast node))))))
