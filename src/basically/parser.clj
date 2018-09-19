@@ -258,12 +258,15 @@
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 
+(defn direct?
+  "Determine if an input is a direct statement or not."
+  [[{:keys [type]} & _]]
+  (not= type :integer))
+
 (defn- parse-line ([[{:keys [type value]} & rest :as tokens]]
-   ;; If the first token of the line is an integer, set the label to that
-   ;; number.
-   (if (= type :integer)
-     (parse-line rest [] value)
-     (parse-line tokens [] nil)))
+   (if (direct? tokens)
+     (parse-line tokens [] nil)
+     (parse-line rest [] value)))
   ([[{:keys [type]} & rest :as tokens] nodes label]
    (if (or (empty? tokens) (= type :newline))
      (if (= (count nodes) 1)
