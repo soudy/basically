@@ -25,17 +25,17 @@
   ([[{:keys [value]} & _ :as tokens] types]
    (expect tokens types (str "?UNEXPECTED \"" value "\"")))
   ([[{:keys [type value] :as current} & rest] types message]
-  (if (some #{type} types)
-    [current rest]
-    (throw (Exception. message)))))
+   (if (some #{type} types)
+     [current rest]
+     (throw (Exception. message)))))
 
 (declare parse-node)
 
 (defn- expect-and-parse
   "Expect the token on top to be any of `types' and parse it."
-  ([tokens & args]
-   (apply expect tokens args)
-   (parse-node tokens)))
+  [tokens & args]
+  (apply expect tokens args)
+  (parse-node tokens))
 
 (defn- expect-end
   "Expect the end of a statement."
