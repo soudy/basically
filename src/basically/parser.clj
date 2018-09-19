@@ -7,9 +7,10 @@
 (defrecord FuncCall [name args user-function?])
 (defrecord IfStmt [condition body])
 (defrecord InputStmt [message variables])
+(defrecord DefineFunc [name arg body])
 
-(defn- function-call? [[current next & _]]
-  (and (= (:type current) :ident) (= (:type next) :lparen)))
+(defn- function-call? [[{current :type} {next :type} & _]]
+  (and (= current :ident) (= next :lparen)))
 
 (defn- end-delimiter? [{:keys [type]}]
   (or (= type :newline) (= type :colon)))
@@ -43,8 +44,7 @@
   "Expect the end of a statement."
   [tokens]
   (when (seq tokens)
-    (expect tokens [:newline :colon])
-    tokens))
+    (expect tokens [:newline :colon])))
 
 (defn- parse-print
   "Parse a print statement.
@@ -107,8 +107,8 @@
     GOTO 10
     GOSUB 20"
   [tokens label type]
-  (let [[arg tokens] (expect-and-parse tokens [:integer])
-        tokens (expect-end tokens)]
+  (let [[arg tokens] (expect-and-parse tokens [:integer])]
+    (expect-end tokens)
     [(new-node type label arg) tokens]))
 
 ;; Operators with their precedence and associativity
@@ -223,6 +223,22 @@
       (expect-end tokens)
       [(new-node :if label (->IfStmt condition body)) tokens])))
 
+(defn- parse-def
+  "Parse a function statement.
+
+  Syntax:
+    DEF FN <ident>\"(\" <integer | float> \")\" = <expression>"
+  [tokens label]
+  (let [[_ tokens] (expect tokens [:fn])
+        [{name :value} tokens] (expect tokens [:ident])
+        [_ tokens] (expect tokens [:lparen])
+        [arg tokens] (expect-and-parse tokens [:ident])
+        [_ tokens] (expect tokens [:rparen])
+        [_ tokens] (expect tokens [:=])
+        [body tokens] (parse-expr tokens)]
+    (expect-end tokens)
+    [(new-node :def label (->DefineFunc name arg body))]))
+
 (defn- parse-node
   ([tokens]
    (parse-node tokens nil))
@@ -241,6 +257,7 @@
          (parse-expr tokens label)
          [(new-node type label value) rest])
      :if (parse-if rest label)
+     :def (parse-def rest label)
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 

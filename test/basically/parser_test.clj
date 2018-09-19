@@ -115,7 +115,7 @@
              {:type :print
               :label "20"
               :value [(map->Node {:type :expr
-                                  :label nil,
+                                  :label nil
                                   :value (map->Expr
                                           {:operator :*
                                            :lhs (map->Expr {:operator :exp
@@ -172,7 +172,7 @@
                                                                     :rhs (map->Node {:type :integer
                                                                                      :label nil
                                                                                      :value "10"})})})]
-                                                      :user-function? true})})})]})]))))
+                                        :user-function? true})})})]})]))))
 
 
 (deftest parse-if-statement
@@ -184,8 +184,8 @@
               :label "10"
               :value (map->IfStmt
                       {:condition (map->Node
-                                   {:type :expr,
-                                    :label nil,
+                                   {:type :expr
+                                    :label nil
                                     :value (map->Expr
                                             {:operator :and
                                              :lhs (map->Expr {:operator :<
@@ -207,7 +207,7 @@
                                          :value "20"})})})
             (map->Node
              {:type :if
-              :label "20",
+              :label "20"
               :value
               (map->IfStmt
                {:condition (map->Node {:type :expr
@@ -217,7 +217,7 @@
                                                 :lhs (map->Node {:type :ident
                                                                  :label nil
                                                                  :value "A"})
-                                                :rhs (map->Expr {:operator :=,
+                                                :rhs (map->Expr {:operator :=
                                                                  :lhs (map->Expr {:operator :or
                                                                                   :lhs (map->Node {:type :string
                                                                                                    :label nil
@@ -256,7 +256,7 @@
                                                                         :value "B"})
                                                             (map->Node {:type :ident
                                                                         :label nil
-                                                                        :value "C"}) ]})})
+                                                                        :value "C"})]})})
             (map->Node {:type "30"
                         :label :input
                         :value (map->InputStmt {:message "Two things please "
@@ -266,3 +266,24 @@
                                                             (map->Node {:type :ident
                                                                         :label nil
                                                                         :value "B$"})]})})]))))
+
+(deftest parse-def-statement
+  (let [ast (-> "10 DEF FN SQUARE(X) = X * X" lex parse)]
+    (is (= ast
+           [(map->Node
+             {:type :def
+              :label "10"
+              :value (map->DefineFunc
+                      {:name "SQUARE"
+                       :arg (map->Node {:type :ident
+                                        :label nil
+                                        :value "X"})
+                       :body (map->Node {:type :expr
+                                         :label nil
+                                         :value (map->Expr {:operator :*
+                                                            :lhs (map->Node {:type :ident
+                                                                             :label nil
+                                                                             :value "X"})
+                                                            :rhs (map->Node {:type :ident
+                                                                             :label nil
+                                                                             :value "X"})})})})})]))))
