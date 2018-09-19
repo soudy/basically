@@ -234,7 +234,7 @@
         [_ tokens] (expect tokens [:=])
         [body tokens] (parse-expr tokens)]
     (expect-end tokens)
-    [(new-node :def label (->DefineFunc name arg body))]))
+    [(new-node :def label (->DefineFunc name arg body)) tokens]))
 
 (defn- parse-node
   ([tokens]
