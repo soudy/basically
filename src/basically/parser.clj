@@ -258,13 +258,13 @@
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 
-(defn direct?
+(defn direct-statement?
   "Determine if an input is a direct statement or not."
   [[{:keys [type]} & _]]
   (not= type :integer))
 
 (defn- parse-line ([[{:keys [type value]} & rest :as tokens]]
-   (if (direct? tokens)
+   (if (direct-statement? tokens)
      (parse-line tokens [] nil)
      (parse-line rest [] value)))
   ([[{:keys [type]} & rest :as tokens] nodes label]
@@ -282,6 +282,4 @@
    (if (empty? tokens)
      ast
      (let [[node tokens] (parse-line tokens)]
-       (if-not (nil? node)
-         (parse tokens (conj ast node))
-         (parse tokens ast))))))
+       (parse tokens (conj ast node))))))
