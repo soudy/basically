@@ -33,11 +33,8 @@
 
 (defn- expect-and-parse
   "Expect the token on top to be any of `types' and parse it."
-  ([tokens types]
-   (expect tokens types)
-   (parse-node tokens))
-  ([tokens types message]
-   (expect tokens types message)
+  ([tokens & args]
+   (apply expect tokens args)
    (parse-node tokens)))
 
 (defn- expect-end
