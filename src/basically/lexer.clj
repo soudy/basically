@@ -1,7 +1,6 @@
 (ns basically.lexer
-  (:refer-clojure :exclude [integer? symbol? string?]))
-
-(use '[clojure.string :only [lower-case join]])
+  (:refer-clojure :exclude [integer? symbol? string?])
+  (:use [clojure.string :only [lower-case join]]))
 
 (defrecord Token [type value])
 
