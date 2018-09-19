@@ -78,7 +78,7 @@
     INPUT A, B, C
     INPUT \"Enter 2 things please \"; A$, B$"
   ([[{:keys [type value]} & rest :as tokens] label]
-   (expect tokens [:string :ident] "?ILLEGAL DIRECT ERROR")
+   (expect tokens [:string :ident])
    (if (= type :string)
      (let [[_ tokens] (expect rest [:semicolon])]
        (parse-input tokens label value []))
