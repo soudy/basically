@@ -21,9 +21,17 @@
 
 (deftest eval-assignment
   (let [mem (-> "10 A=20*20
-20 B$=\"100\"
+20 B$=\"100\"+\"100\"
 30 C=A/2" lex parse eval)]
     (are [x y] (= x y)
       (mem-get-var mem "A") 400
-      (mem-get-var mem "B$") "100"
+      (mem-get-var mem "B$") "100100"
       (mem-get-var mem "C") 200)))
+
+
+(deftest eval-function-call
+  (let [mem (-> "10 A=SQR(25) + 10
+20 B=LEFT$(\"Good morning!\", 4)" lex parse eval)]
+    (are [x y] (= x y)
+      (mem-get-var mem "A") 15
+      (mem-get-var mem "B") "Good")))

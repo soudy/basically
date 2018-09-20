@@ -1,10 +1,17 @@
 (ns basically.eval
   (:require [basically.expr :refer [exec-expr]]
             [basically.mem :refer :all])
-  (:import [basically.parser Node NodeList Expr])
+  (:import [basically.parser Node NodeList Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
 (defn- node-number? [type] (or (= type :integer) (= type :float)))
+
+(declare eval-expr)
+
+(defn- eval-func-call [{:keys [name args]} mem]
+  (if-let [func (mem-get-func mem name)]
+    (apply func (map #(eval-expr % mem) args))
+    0))
 
 (defn- eval-expr [expr mem]
   (cond
@@ -15,6 +22,10 @@
         :ident (mem-get-var mem value)
         (:integer :float) (read-string value)
         :string value))
+
+    ;; Function call
+    (instance? FuncCall expr)
+    (eval-func-call expr mem)
 
     ;; Operations
     (instance? Expr expr)
