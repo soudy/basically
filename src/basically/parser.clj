@@ -11,7 +11,7 @@
 (defrecord LetStmt [name value])
 (defrecord ForLoop [counter counter-value to step])
 
-(def ^:dynamic *default-for-step* 1)
+(def default-for-step 1)
 
 (defn- function-call? [[{current :type} {next :type} & _]]
   (and (= current :ident) (= next :lparen)))
@@ -264,7 +264,7 @@
         [_ tokens] (expect tokens [:to])
         [to tokens] (expect-and-parse tokens [:integer :float])]
     (if (or (empty? tokens) (end-delimiter? tokens))
-      [(new-node :for label (->ForLoop counter counter-value to *default-for-step*))
+      [(new-node :for label (->ForLoop counter counter-value to default-for-step))
        tokens]
       (let [[_ tokens] (expect tokens [:step])
             [step tokens] (expect-and-parse tokens [:integer :float])]

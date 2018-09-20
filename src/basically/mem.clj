@@ -1,6 +1,6 @@
 (ns basically.mem)
 
-(def ^:dynamic *initial-memory*
+(def initial-memory
   {:current-line nil ; Current BASIC line number
    :jump-line nil    ; Line number during GOSUB, GOTO and RUN
    :variables {}     ; Name and value of current variables
@@ -8,10 +8,10 @@
    :program ""})     ; Current program
 
 (defn mem-init []
-  (atom *initial-memory*))
+  (atom initial-memory))
 
 (defn mem-reset! [mem]
-  (reset! mem *initial-memory*))
+  (reset! mem initial-memory))
 
 (defn mem-set-var! [mem name value]
   (swap! mem assoc-in [:variables name] value))
