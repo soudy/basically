@@ -79,10 +79,11 @@
 
 (defn eval
   "Evaluate an AST."
-  ([ast] (eval ast 0 (mem-init)))
-  ([ast current mem]
+  ([ast]
+   (eval ast (mem-init) 0))
+  ([ast mem current]
    (if (= (count ast) current)
      mem
      (do
        (eval-node ast (get ast current) mem)
-       (recur ast (inc current) mem)))))
+       (recur ast mem (inc current))))))

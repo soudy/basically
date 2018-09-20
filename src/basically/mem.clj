@@ -18,3 +18,9 @@
 
 (defn mem-get-var [mem name]
   (get (:variables @mem) name 0))
+
+(defn mem-append-program! [mem line]
+  (swap! mem update-in [:program] str line))
+
+(defn mem-get-program [mem]
+  (:program @mem))
