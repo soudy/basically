@@ -1,11 +1,25 @@
 (ns basically.eval
-  (:import [basically.parser NodeList])
-  (:refer-clojure :exclude [eval number?]))
+  (:require [basically.expr :refer [exec-expr]])
+  (:import [basically.parser Node NodeList Expr])
+  (:refer-clojure :exclude [eval]))
 
-(defn- number? [type] (or (= type :integer) (= type :float)))
+(defn- node-number? [type] (or (= type :integer) (= type :float)))
 
-(defn- eval-expr [expr]
-  "")
+(defn- eval-expr [expr mem]
+  (cond
+    ;; Literals
+    (instance? Node expr)
+    (let [{:keys [type value]} expr]
+      (case type
+        (:integer :float) (read-string value)
+        :string value))
+
+    ;; Operations
+    (instance? Expr expr)
+    (let [{:keys [operator lhs rhs]} expr
+          lhs (eval-expr lhs mem)
+          rhs (eval-expr rhs mem)]
+      (exec-expr operator lhs rhs))))
 
 (defn- eval-print-arg
   [[{:keys [type value]} & [{next-type :type} & _] :as args] mem]
@@ -16,10 +30,10 @@
                                     (= next-type :string) (str value " ")
                                     (= next-type :semicolon) (str value "  ")
                                     :else value)
-                :string (if (or (number? next-type) (= next-type :expr))
+                :string (if (or (node-number? next-type) (= next-type :expr))
                           (str value " ")
                           value)
-                :expr (eval-expr value)
+                :expr (eval-expr value mem)
                 :tab-margin (apply str (repeat 10 " "))
                 :nobreak "")]
     (str value (when print-newline? "\n"))))
@@ -29,7 +43,7 @@
   to print."
   ([[{:keys [type]} & rest :as args] mem]
    ;; If the arguments start with a float or integer, indent by a space
-   (let [begin-message (if (number? type) " " "")]
+   (let [begin-message (if (node-number? type) " " "")]
      (eval-print-args args mem begin-message)))
   ([args mem message]
    (if (empty? args)
