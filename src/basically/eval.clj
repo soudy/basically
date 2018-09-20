@@ -34,7 +34,7 @@
           rhs (eval-expr rhs mem)]
       (exec-expr operator lhs rhs))))
 
-(defn- eval-print-arg [[{:keys [type value]} & [{next-type :type} & _] :as args] mem]
+(defn- eval-print-arg [[{:keys [type value]} & [{next-type :type}] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
   (let [print-newline? (and (= (count args) 1) (not= type :nobreak))
         value (case type

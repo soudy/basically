@@ -13,10 +13,10 @@
 
 (def default-for-step 1)
 
-(defn- function-call? [[{current :type} {next :type} & _]]
+(defn- function-call? [[{current :type} {next :type}]]
   (and (= current :ident) (= next :lparen)))
 
-(defn- end-delimiter? [[{:keys [type]} & _]]
+(defn- end-delimiter? [[{:keys [type]}]]
   (or (= type :newline) (= type :colon)))
 
 (defn- new-node
@@ -26,7 +26,7 @@
 
 (defn- expect
   "Expect the token on top to be any of `types'."
-  ([[{:keys [value]} & _ :as tokens] types]
+  ([[{:keys [value]} :as tokens] types]
    (expect tokens types (str "?UNEXPECTED \"" value "\"")))
   ([[{:keys [type value] :as current} & rest] types message]
    (if (some #{type} types)
@@ -140,7 +140,7 @@
     <fn-call-args> ::= [<expr>] {\",\" <expr>}"
   ([tokens]
    (parse-function-call-args tokens []))
-  ([[{:keys [type]} & _ :as tokens] args]
+  ([[{:keys [type]} :as tokens] args]
    (if (= type :rparen)
      [args tokens]
      (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
@@ -316,7 +316,7 @@
 
 (defn direct-statement?
   "Determine if an input is a direct statement or not."
-  [[{:keys [type]} & _]]
+  [[{:keys [type]}]]
   (not= type :integer))
 
 (defn- parse-line ([[{:keys [type value]} & rest :as tokens]]
