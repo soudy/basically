@@ -51,7 +51,7 @@
   "Parse a print statement.
 
   Syntax:
-    PRINT <value> {\",\" | \";\" | <value>}
+    PRINT <expr> {\",\" | \";\" | <expr>}
 
   Examples:
     PRINT \"Hello, world!\"
