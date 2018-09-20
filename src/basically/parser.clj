@@ -9,11 +9,14 @@
 (defrecord InputStmt [message variables])
 (defrecord DefineFunc [name arg body])
 (defrecord LetStmt [name value])
+(defrecord ForLoop [counter counter-value to step])
+
+(def ^:dynamic *default-for-step* 1)
 
 (defn- function-call? [[{current :type} {next :type} & _]]
   (and (= current :ident) (= next :lparen)))
 
-(defn- end-delimiter? [{:keys [type]}]
+(defn- end-delimiter? [[{:keys [type]} & _]]
   (or (= type :newline) (= type :colon)))
 
 (defn- new-node
@@ -57,8 +60,8 @@
   "
   ([tokens label]
    (parse-print tokens (new-node :print label) []))
-  ([[{:keys [type] :as current} & rest :as tokens] node values]
-   (if (or (empty? tokens) (end-delimiter? current))
+  ([[{:keys [type]} & rest :as tokens] node values]
+   (if (or (empty? tokens) (end-delimiter? tokens))
      [(assoc node :value values) tokens]
      ;; Print statements specifics. Semicolons mean no break and commas mean
      ;; a tabulator margin.
@@ -84,8 +87,8 @@
      (let [[_ tokens] (expect rest [:semicolon])]
        (parse-input tokens label value []))
      (parse-input tokens label nil [])))
-  ([[current & _ :as tokens] label print-message variables]
-   (if (or (empty? tokens) (end-delimiter? current))
+  ([tokens label print-message variables]
+   (if (or (empty? tokens) (end-delimiter? tokens))
      [(new-node label :input (->InputStmt print-message variables)) tokens]
      (let [[variable [current & rest :as tokens]] (expect-and-parse tokens [:ident])
            new-variables (conj variables variable)]
@@ -134,7 +137,7 @@
   "Parse a function call's arguments.
 
   Syntax:
-    <fn-call-args> ::= <expr> {\",\" <expr>}"
+    <fn-call-args> ::= [<expr>] {\",\" <expr>}"
   ([tokens]
    (parse-function-call-args tokens []))
   ([[{:keys [type]} & _ :as tokens] args]
@@ -249,6 +252,43 @@
     (expect-end tokens)
     [(new-node :let label (->LetStmt name value)) tokens]))
 
+(defn- parse-for
+  "Parse a for statement.
+
+  Syntax:
+    FOR <ident>=<number> TO <number> [STEP <number>]"
+  [tokens label]
+  (let [[{counter :value} tokens] (expect tokens [:ident])
+        [_ tokens] (expect tokens [:=])
+        [counter-value tokens] (expect-and-parse tokens [:integer :float])
+        [_ tokens] (expect tokens [:to])
+        [to tokens] (expect-and-parse tokens [:integer :float])]
+    (if (or (empty? tokens) (end-delimiter? tokens))
+      [(new-node :for label (->ForLoop counter counter-value to *default-for-step*))
+       tokens]
+      (let [[_ tokens] (expect tokens [:step])
+            [step tokens] (expect-and-parse tokens [:integer :float])]
+        (expect-end tokens)
+        [(new-node :for label (->ForLoop counter counter-value to step)) tokens]))))
+
+(defn- parse-next
+  "Parse a next statement.
+
+  Syntax:
+    NEXT [<ident>] {\",\" <ident>}"
+  ([tokens label]
+   (parse-next tokens label []))
+  ([tokens label args]
+  (if (or (empty? tokens) (end-delimiter? tokens))
+    [(new-node :next label args) tokens]
+    (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
+          new-args (conj args arg)]
+      (if (= next :comma)
+        (recur rest label new-args)
+        (do
+          (expect-end tokens)
+          [(new-node :next label new-args) tokens]))))))
+
 (defn- parse-node
   ([tokens]
    (parse-node tokens nil))
@@ -269,6 +309,8 @@
      :if (parse-if rest label)
      :def (parse-def rest label)
      :let (parse-let rest label)
+     :for (parse-for rest label)
+     :next (parse-next rest label)
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 

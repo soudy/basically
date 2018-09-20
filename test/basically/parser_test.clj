@@ -317,3 +317,37 @@
                                                              :rhs (map->Node {:type :integer
                                                                               :label nil
                                                                               :value "2"})})})})})]))))
+
+
+(deftest parse-for-loop
+  (let [ast (-> "10 FOR I=1 TO 100
+20 PRINT I * 2
+30 NEXT" lex parse)]
+    (is (= ast
+           [(map->Node
+             {:type :for
+              :label "10"
+              :value (map->ForLoop {:counter "I"
+                                    :counter-value (map->Node {:type :integer
+                                                               :label nil
+                                                               :value "1"})
+                                    :to (map->Node {:type :integer
+                                                    :label nil
+                                                    :value "100"})
+                                    :step 1})})
+
+            (map->Node
+             {:type :print
+              :label "20"
+              :value [(map->Node {:type :expr
+                                  :label nil
+                                  :value (map->Expr {:operator :*
+                                                     :lhs (map->Node {:type :ident
+                                                                      :label nil
+                                                                      :value "I"})
+                                                     :rhs (map->Node {:type :integer
+                                                                      :label nil
+                                                                      :value "2"})})})]})
+            (map->Node {:type :next
+                        :label "30"
+                        :value []})]))))
