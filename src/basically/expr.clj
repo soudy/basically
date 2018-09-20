@@ -3,12 +3,14 @@
 (def ^:dynamic *true* -1)
 (def ^:dynamic *false* 0)
 
+(def ^:dynamic *type-mismatch-msg* "?TYPE MISMATCH ERROR")
+
 (defn- expect-types
   "Expect an expression to be true, otherwise throw a type mismatch error. Used
   to make sure an operator received valid operand types."
   [valid-types?]
   (when-not valid-types?
-    (throw (Exception. "?TYPE MISMATCH ERROR"))))
+    (throw (Exception. *type-mismatch-msg*))))
 
 (defn- apply-op [op & args]
   (apply @(resolve (symbol (name op))) args))
@@ -32,7 +34,7 @@
     :+ (cond
          (and (number? lhs) (number? rhs)) (+ lhs rhs)
          (and (string? lhs) (string? rhs)) (str lhs rhs)
-         :else (throw (Exception. "?TYPE MISMATCH ERROR")))
+         :else (throw (Exception. *type-mismatch-msg*)))
     (:- :* :/) (do
                  (expect-types (and (number? lhs) (number? rhs)))
                  (apply-op operator lhs rhs))
@@ -46,4 +48,4 @@
                                             (int (first lhs))
                                             (int (first rhs)))
                            *true* *false*)
-                      :else (throw (Exception. "?TYPE MISMATCH ERROR")))))
+                      :else (throw (Exception. *type-mismatch-msg*)))))

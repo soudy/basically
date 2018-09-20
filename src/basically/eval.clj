@@ -28,7 +28,7 @@
         value (case type
                 (:integer :float) (cond
                                     (= next-type :string) (str value " ")
-                                    (= next-type :semicolon) (str value "  ")
+                                    (= next-type :nobreak) (str value "  ")
                                     :else value)
                 :string (if (or (node-number? next-type) (= next-type :expr))
                           (str value " ")
