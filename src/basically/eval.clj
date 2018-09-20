@@ -1,5 +1,6 @@
 (ns basically.eval
-  (:require [basically.expr :refer [exec-expr]])
+  (:require [basically.expr :refer [exec-expr]]
+            [basically.mem :refer :all])
   (:import [basically.parser Node NodeList Expr])
   (:refer-clojure :exclude [eval]))
 
@@ -11,6 +12,7 @@
     (instance? Node expr)
     (let [{:keys [type value]} expr]
       (case type
+        :ident (mem-get-var mem value)
         (:integer :float) (read-string value)
         :string value))
 
@@ -50,21 +52,37 @@
      (let [arg-value (eval-print-arg args mem)]
        (recur (drop 1 args) mem (str message arg-value))))))
 
-(defn- eval-print [[{:keys [value]} & rest] mem]
+(defn- eval-print [{:keys [value]} mem]
   (let [message (eval-print-args value mem)]
-    (print message)
-    [rest mem]))
+    (print message)))
 
-(defn- eval-node [[{:keys [type] :as current} & _ :as ast] mem]
+(defn- eval-let [{:keys [name value]} mem]
+  (mem-set-var! mem name (eval-expr value mem)))
+
+(defn- assignment-expr? [expr]
+  (and (instance? Expr expr)) (= (:operator expr) :=))
+
+(defn- eval-top-level-expr [{:keys [value label]} mem]
+  (if (assignment-expr? value)
+    (let [name (-> value :lhs :value)
+          value (eval-expr (:rhs value) mem)]
+      (mem-set-var! mem name value))
+    (throw (Exception. "?SYNTAX ERROR" (when label (str "IN " label))))))
+
+(defn- eval-node [ast {:keys [type] :as current} mem]
   (if (instance? NodeList current)
-    (map #(eval-node % mem) current)
+    (map #(eval-node ast % mem) current)
     (case type
-      :print (eval-print ast mem))))
+      :print (eval-print current mem)
+      :let (eval-let current mem)
+      :expr (eval-top-level-expr current mem))))
 
 (defn eval
   "Evaluate an AST."
-  ([ast] (eval ast ""))
-  ([ast mem]
-   (when-not (empty? ast)
-     (let [[ast mem] (eval-node ast mem)]
-       (recur ast mem)))))
+  ([ast] (eval ast 0 (mem-init)))
+  ([ast current mem]
+   (if (= (count ast) current)
+     mem
+     (do
+       (eval-node ast (get ast current) mem)
+       (recur ast (inc current) mem)))))
