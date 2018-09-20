@@ -75,7 +75,7 @@
   "Parse an input statement.
 
   Syntax:
-    INPUT [<string>] <ident> {\",\" <ident>}
+    INPUT [<string> \";\"] <ident> {\",\" <ident>}
 
   Examples:
     INPUT \"How many? \"; A%
