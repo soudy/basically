@@ -8,6 +8,7 @@
 (defrecord IfStmt [condition body])
 (defrecord InputStmt [message variables])
 (defrecord DefineFunc [name arg body])
+(defrecord LetStmt [name value])
 
 (defn- function-call? [[{current :type} {next :type} & _]]
   (and (= current :ident) (= next :lparen)))
@@ -236,6 +237,18 @@
     (expect-end tokens)
     [(new-node :def label (->DefineFunc name arg body)) tokens]))
 
+(defn- parse-let
+  "Parse a let statement.
+
+  Syntax:
+    LET <ident> = <expr>"
+  [tokens label]
+  (let [[{name :value} tokens] (expect tokens [:ident])
+        [_ tokens] (expect tokens [:=])
+        [value tokens] (parse-expr tokens)]
+    (expect-end tokens)
+    [(new-node :let label (->LetStmt name value)) tokens]))
+
 (defn- parse-node
   ([tokens]
    (parse-node tokens nil))
@@ -255,6 +268,7 @@
          [(new-node type label value) rest])
      :if (parse-if rest label)
      :def (parse-def rest label)
+     :let (parse-let rest label)
      :colon (parse-node rest label)
      (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
 

@@ -287,3 +287,33 @@
                                                             :rhs (map->Node {:type :ident
                                                                              :label nil
                                                                              :value "X"})})})})})]))))
+
+
+(deftest parse-let-statement
+  (let [ast (-> "10 LET A=\"BASIC RULES!\"
+20 LET TAU = PI * 2" lex parse)]
+    (is (= ast
+           [(map->Node
+             {:type :let
+              :label "10"
+              :value (map->LetStmt
+                      {:name "A"
+                       :value (map->Node {:type :expr
+                                          :label nil
+                                          :value (map->Node {:type :string
+                                                             :label nil
+                                                             :value "BASIC RULES!"})})})})
+            (map->Node
+             {:type :let
+              :label "20"
+              :value (map->LetStmt
+                      {:name "TAU"
+                       :value (map->Node {:type :expr
+                                          :label nil
+                                          :value (map->Expr {:operator :*
+                                                             :lhs (map->Node {:type :ident
+                                                                              :label nil
+                                                                              :value "PI"})
+                                                             :rhs (map->Node {:type :integer
+                                                                              :label nil
+                                                                              :value "2"})})})})})]))))
