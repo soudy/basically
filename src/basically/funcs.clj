@@ -2,8 +2,6 @@
   (:require [basically.expr :refer [type-mismatch-err]]
             [clojure.math.numeric-tower :refer :all]))
 
-(defrecord Function [arity func])
-
 (def functions
   {"abs" (fn [n]
            (if (not (number? n))
