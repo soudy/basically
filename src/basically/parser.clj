@@ -228,7 +228,7 @@
   "Parse a function statement.
 
   Syntax:
-    DEF FN <ident>\"(\" <integer | float> \")\" = <expression>"
+    DEF FN <ident>\"(\" <ident> \")\" = <expression>"
   [tokens label]
   (let [[_ tokens] (expect tokens [:fn])
         [{name :value} tokens] (expect tokens [:ident])
