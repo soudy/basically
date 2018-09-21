@@ -7,8 +7,7 @@
   (let [ast (-> "10 PRINT \"Hello, world\"
 20 PRINT \"Goodbye, world\";
 30 ? \"A\",\"B\",\"C\"" lex parse)]
-    (is (= ast
-           [(map->Node {:label "10"
+    (is (= [(map->Node {:label "10"
                         :type :print
                         :value [(map->Node {:label nil
                                             :type :string
@@ -37,24 +36,25 @@
                                             :value nil})
                                 (map->Node {:label nil
                                             :type :string
-                                            :value "C"})]})]))))
+                                            :value "C"})]})]
+           ast))))
 
 (deftest parse-comment
   (let [ast (-> "10 REM I don't do anything
 20 REM But I do get parsed because Ι have a label" lex parse)]
-    (is (= ast [(map->Node {:label "10"
-                            :type :noop
-                            :value nil})
-                (map->Node {:label "20"
-                            :type :noop
-                            :value nil})]))))
+    (is (= [(map->Node {:label "10"
+                        :type :noop
+                        :value nil})
+            (map->Node {:label "20"
+                        :type :noop
+                        :value nil})]
+           ast))))
 
 (deftest parse-jump-statements
   (let [ast (-> "10 GOTO 20
 20 GOSUB 30
 30 RETURN" lex parse)]
-    (is (= ast
-           [(map->Node {:label "10"
+    (is (= [(map->Node {:label "10"
                         :type :goto
                         :value (map->Node {:label nil
                                            :type :integer
@@ -66,12 +66,12 @@
                                            :value "30"})})
             (map->Node {:label "30"
                         :type :return
-                        :value nil})]))))
+                        :value nil})]
+           ast))))
 
 (deftest parse-multiple-statements
   (let [ast (-> "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"" lex parse)]
-    (is (= ast
-           [(map->NodeList
+    (is (= [(map->NodeList
              {:label "10"
               :nodes [(map->Node {:type :print
                                   :label "10"
@@ -85,13 +85,13 @@
                                   :label "10" :value
                                   [(map->Node {:type :string
                                                :label nil
-                                               :value "Statements on a line"})]})]})]))))
+                                               :value "Statements on a line"})]})]})]
+           ast))))
 
 (deftest parse-expressions
   (let [ast (-> "10 A%=2 + 2 * 10
 20 PRINT 2^32 * (2 + 5 - (3))" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :expr
               :label "10"
               :value (map->Expr
@@ -140,13 +140,13 @@
                                                                           :value "5"})})
                                                             :rhs (map->Node {:type :integer
                                                                              :label nil
-                                                                             :value "3"})})})})]})]))))
+                                                                             :value "3"})})})})]})]
+           ast))))
 
 
 (deftest parse-function-expression
   (let [ast (-> "10 PRINT ABS(10) + FN SQRT(3.5 * 10)" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :print
               :label "10"
               :value [(map->Node
@@ -172,14 +172,14 @@
                                                                     :rhs (map->Node {:type :integer
                                                                                      :label nil
                                                                                      :value "10"})})})]
-                                        :user-function? true})})})]})]))))
+                                        :user-function? true})})})]})]
+           ast))))
 
 
 (deftest parse-if-statement
   (let [ast (-> "10 IF A < B AND B < C THEN 20
 20 IF A=\"\" OR B=\"\" GOTO 30" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :if
               :label "10"
               :value (map->IfStmt
@@ -232,14 +232,14 @@
                                   :label nil
                                   :value (map->Node {:type :integer
                                                      :label nil
-                                                     :value "30"})})})})]))))
+                                                     :value "30"})})})})]
+           ast))))
 
 (deftest parse-input-statement
   (let [ast (-> "10 INPUT \"How many? \"; A%
 20 INPUT A, B, C
 30 INPUT \"Two things please \"; A$, B$" lex parse)]
-    (is (= ast
-           [(map->Node {:type :input
+    (is (= [(map->Node {:type :input
                         :label "10"
                         :value (map->InputStmt {:message "How many? "
                                                 :variables [(map->Node {:type :ident
@@ -265,12 +265,12 @@
                                                                         :value "A$"})
                                                             (map->Node {:type :ident
                                                                         :label nil
-                                                                        :value "B$"})]})})]))))
+                                                                        :value "B$"})]})})]
+           ast))))
 
 (deftest parse-def-statement
   (let [ast (-> "10 DEF FN SQUARE(X) = X * X" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :def
               :label "10"
               :value (map->DefineFunc
@@ -286,14 +286,14 @@
                                                                              :value "X"})
                                                             :rhs (map->Node {:type :ident
                                                                              :label nil
-                                                                             :value "X"})})})})})]))))
+                                                                             :value "X"})})})})})]
+           ast))))
 
 
 (deftest parse-let-statement
   (let [ast (-> "10 LET A=\"BASIC RULES!\"
 20 LET TAU = PI * 2" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :let
               :label "10"
               :value (map->LetStmt
@@ -316,15 +316,15 @@
                                                                               :value "PI"})
                                                              :rhs (map->Node {:type :integer
                                                                               :label nil
-                                                                              :value "2"})})})})})]))))
+                                                                              :value "2"})})})})})]
+           ast))))
 
 
 (deftest parse-for-loop
   (let [ast (-> "10 FOR I=1 TO 100
 20 PRINT I * 2
 30 NEXT" lex parse)]
-    (is (= ast
-           [(map->Node
+    (is (= [(map->Node
              {:type :for
               :label "10"
               :value (map->ForLoop {:counter "I"
@@ -350,4 +350,5 @@
                                                                       :value "2"})})})]})
             (map->Node {:type :next
                         :label "30"
-                        :value []})]))))
+                        :value []})]
+           ast))))

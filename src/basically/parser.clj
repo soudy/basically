@@ -11,7 +11,7 @@
 (defrecord LetStmt [name value])
 (defrecord ForLoop [counter counter-value to step])
 
-(def default-for-step 1)
+(def ^:private default-for-step 1)
 
 (defn- function-call? [[{current :type} {next :type}]]
   (and (= current :ident) (= next :lparen)))

@@ -1,5 +1,5 @@
 (ns basically.funcs
-  (:require [basically.expr :refer [type-mismatch-err]]
+  (:require [basically.constants :refer [type-mismatch-err]]
             [clojure.math.numeric-tower :refer :all]))
 
 (def functions

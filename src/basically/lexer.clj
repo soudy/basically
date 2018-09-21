@@ -36,9 +36,9 @@
 (let [operators [\- \+ \* \/ \< \> \=]]
   (defn- operator? [c] (some (partial = c) operators)))
 
-(let [keywords [:let :if :then :for :to :step :next :while :wend
-                :repeat :until :do :loop :goto :gosub :on :def :fn :end
-                :print :and :or :return :input :clr :data :read :get :stop :new]]
+(let [keywords [:let :if :then :for :to :step :next :goto :gosub :on :def :fn
+                :end :print :and :or :return :input :clr :data :read :get :stop
+                :new]]
   (defn- get-keyword
     "Convert an identifier to a BASIC keyword, if it is a keyword."
     [ident]

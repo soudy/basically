@@ -1,9 +1,5 @@
-(ns basically.expr)
-
-(def basic-true -1)
-(def basic-false 0)
-
-(def type-mismatch-err "?TYPE MISMATCH ERROR")
+(ns basically.expr
+  (:require [basically.constants :refer :all]))
 
 (defn- expect-types
   "Expect an expression to be true, otherwise throw a type mismatch error. Used

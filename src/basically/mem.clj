@@ -25,7 +25,7 @@
   (swap! mem assoc-in [:functions (lower-case name)] body))
 
 (defn mem-get-func [mem name]
-  (get (:functions @mem) (lower-case name) nil))
+  (get (:functions @mem) (lower-case name) (fn [& _] 0)))
 
 (defn mem-append-program! [mem line]
   (swap! mem update-in [:program] str line))

@@ -1,6 +1,7 @@
 (ns basically.eval
   (:require [basically.expr :refer [exec-expr]]
-            [basically.mem :refer :all])
+            [basically.mem :refer :all]
+            [basically.constants :refer [basic-true basic-false]])
   (:import [basically.parser Node NodeList Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
@@ -67,8 +68,8 @@
   (let [message (eval-print-args value mem)]
     (print message)))
 
-(defn- eval-let [{:keys [name value]} mem]
-  (mem-set-var! mem name (eval-expr value mem)))
+(defn- eval-let [{name :name expr-node :value} mem]
+  (mem-set-var! mem name (eval-expr (:value expr-node) mem)))
 
 (defn- assignment-expr? [expr]
   (and (instance? Expr expr)) (= (:operator expr) :=))
@@ -95,14 +96,22 @@
     (when (seq rest)
       (eval-input (assoc input-stmt :message "?" :variables rest) mem))))
 
+(declare eval-node)
+
+(defn- eval-if [ast {{condition :value} :condition body :body} mem]
+  (when (= (eval-expr condition mem) basic-true)
+    (eval-node ast body mem)))
+
 (defn- eval-node [ast {:keys [type value] :as current} mem]
   (if (instance? NodeList current)
     (map #(eval-node ast % mem) current)
     (case type
       :print (eval-print current mem)
-      :let (eval-let current mem)
+      :let (eval-let value mem)
       :expr (eval-top-level-expr current mem)
-      :input (eval-input value mem))))
+      :input (eval-input value mem)
+      :if (eval-if ast value mem)
+      :new (mem-reset! mem))))
 
 (defn eval
   "Evaluate an AST."
