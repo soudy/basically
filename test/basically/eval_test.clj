@@ -39,9 +39,12 @@
 (deftest eval-input-statement
   (let [mem (mem-init)
         program "10 INPUT \"Please give me 3 numbers\"; A%, B%, C%"
-        stdout (with-out-str
-                 (with-in-str "4\n10.5\n500"
-                   (eval (->  program lex parse) mem)))]
+        stdout (with-in-str "4\n10.5\n500"
+                 (-> program
+                     lex
+                     parse
+                     (eval mem)
+                     with-out-str))]
     (are [x y] (= x y)
       (mem-get-var mem "A%") 4
       (mem-get-var mem "B%") 10.5
