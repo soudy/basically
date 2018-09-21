@@ -40,10 +40,10 @@
   (let [mem (mem-init)
         program "10 INPUT \"Please give me 3 numbers\"; A%, B%, C%"
         output (with-out-str
-                 (with-in-str "4\n10\n500"
+                 (with-in-str "4\n10.5\n500"
                    (eval (->  program lex parse) mem)))]
     (are [x y] (= x y)
       (mem-get-var mem "A%") 4
-      (mem-get-var mem "B%") 10
+      (mem-get-var mem "B%") 10.5
       (mem-get-var mem "C%") 500
       output "Please give me 3 numbers? ?? ?? ")))

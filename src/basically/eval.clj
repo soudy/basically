@@ -84,7 +84,7 @@
   (print prompt)
   (flush)
   (let [input (read-line)]
-    (if (re-matches (re-pattern "\\d+") input)
+    (if (re-matches (re-pattern "(\\d+(\\.\\d+)?)") input)
       (read-string input)
       (input))))
 
