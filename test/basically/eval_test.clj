@@ -9,8 +9,9 @@
 (deftest eval-print-statement
   (let [stdout (-> "10 PRINT \"Hello, world \";
 20 PRINT \"Goodbye, world\"
-30 PRINT 1;2,3" lex parse eval with-out-str)]
-    (is (= "Hello, world Goodbye, world\n 1  2          3\n" stdout))))
+30 PRINT 1;2,3
+40 PRINT \"Once, \"; :PRINT \"twice.\"" lex parse eval with-out-str)]
+    (is (= "Hello, world Goodbye, world\n 1  2          3\nOnce, twice.\n" stdout))))
 
 
 (deftest eval-expression

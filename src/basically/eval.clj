@@ -104,15 +104,13 @@
     (eval-node ast body mem)))
 
 (defn- eval-node [ast {:keys [type value] :as current} mem]
-  (if (instance? NodeList current)
-    (map #(eval-node ast % mem) current)
-    (case type
-      :print (eval-print current mem)
-      :let (eval-let value mem)
-      :expr (eval-top-level-expr current mem)
-      :input (eval-input value mem)
-      :if (eval-if ast value mem)
-      :new (mem-reset! mem))))
+  (case type
+    :print (eval-print current mem)
+    :let (eval-let value mem)
+    :expr (eval-top-level-expr current mem)
+    :input (eval-input value mem)
+    :if (eval-if ast value mem)
+    :new (mem-reset! mem)))
 
 (defn eval
   "Evaluate an AST."
@@ -123,6 +121,9 @@
   ([ast mem current]
    (if (= (count ast) current)
      mem
-     (do
-       (eval-node ast (get ast current) mem)
+     (let [current-node (get ast current)]
+       (if (instance? NodeList current-node)
+         (doseq [node (:nodes current-node)]
+           (eval-node ast node mem))
+         (eval-node ast current-node mem))
        (recur ast mem (inc current))))))
