@@ -38,10 +38,10 @@
   ;; Print a newline if we're at the last argument, and it's not a semicolon
   (let [print-newline? (and (= (count args) 1) (not= type :nobreak))
         value (case type
-                (:integer :float) (cond
-                                    (= next-type :string) (str value " ")
-                                    (= next-type :nobreak) (str value "  ")
-                                    :else value)
+                (:integer :float) (case next-type
+                                    :string (str value " ")
+                                    :nobreak (str value "  ")
+                                    value)
                 :string (if (or (node-number? next-type) (= next-type :expr))
                           (str value " ")
                           value)
