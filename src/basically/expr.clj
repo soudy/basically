@@ -36,12 +36,14 @@
                  (apply-op operator lhs rhs))
     (:< :<= :> :>=) (cond
                       (and (number? lhs) (number? rhs))
-                        (if (apply-op operator lhs rhs) basic-true basic-false)
+                      (if (apply-op operator lhs rhs) basic-true basic-false)
+
                       (and (string? lhs) (string? rhs))
-                         ;; Compare the ASCII value of the first character
-                         ;; when comparing strings
-                         (if (apply-op operator
-                                            (int (first lhs))
-                                            (int (first rhs)))
-                           basic-true basic-false)
+                      ;; Compare the ASCII value of the first character
+                      ;; when comparing strings
+                      (if (apply-op operator
+                                    (int (first lhs))
+                                    (int (first rhs)))
+                        basic-true basic-false)
+
                       :else (throw (Exception. type-mismatch-err)))))
