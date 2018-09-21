@@ -112,6 +112,9 @@
     :if (eval-if ast value mem)
     :new (mem-reset! mem)))
 
+(defn- eval-node-list [ast {:keys [nodes]} mem]
+  (doseq [node nodes] (eval-node ast node mem)))
+
 (defn eval
   "Evaluate an AST."
   ([ast]
@@ -123,7 +126,6 @@
      mem
      (let [current-node (get ast current)]
        (if (instance? NodeList current-node)
-         (doseq [node (:nodes current-node)]
-           (eval-node ast node mem))
+         (eval-node-list ast current-node mem)
          (eval-node ast current-node mem))
        (recur ast mem (inc current))))))
