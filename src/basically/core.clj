@@ -2,9 +2,8 @@
   (:gen-class)
   (:require [basically.lexer :refer [lex]]
             [basically.parser :refer [direct-statement?]]
-            [basically.eval :refer [eval run-program]]
-            [basically.mem :refer :all])
-  (:refer-clojure :exclude [eval]))
+            [basically.eval :refer [run-program]]
+            [basically.mem :refer :all]))
 
 (defn repl []
   (println "READY.")
