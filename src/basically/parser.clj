@@ -1,4 +1,5 @@
-(ns basically.parser)
+(ns basically.parser
+  (:require [basically.errors :refer [error]]))
 
 (defrecord NodeList [label nodes])
 (defrecord Node [type label value])
@@ -26,19 +27,17 @@
 
 (defn- expect
   "Expect the token on top to be any of `types'."
-  ([[{:keys [value]} :as tokens] types]
-   (expect tokens types (str "?UNEXPECTED \"" value "\"")))
-  ([[{:keys [type value] :as current} & rest] types message]
-   (if (some #{type} types)
-     [current rest]
-     (throw (Exception. message)))))
+  [[{:keys [type value] :as current} & rest] types]
+  (if (some #{type} types)
+    [current rest]
+    (error :syntax-error)))
 
 (declare parse-node)
 
 (defn- expect-and-parse
   "Expect the token on top to be any of `types' and parse it."
-  [tokens & args]
-  (apply expect tokens args)
+  [tokens types]
+  (expect tokens types)
   (parse-node tokens))
 
 (defn- expect-end
@@ -173,13 +172,15 @@
   [[{:keys [type value]} & rest :as tokens]]
   (cond
     (or (function-call? tokens) (= type :fn)) (parse-function-call tokens)
+
     (= type :lparen)
-      (let [[expr tokens] (parse-expr-begin rest)
-            [_ tokens] (expect tokens [:rparen])]
-        [expr tokens])
+    (let [[expr tokens] (parse-expr-begin rest)
+          [_ tokens] (expect tokens [:rparen])]
+      [expr tokens])
+
     (some #{type} [:integer :float :ident :string])
-      [(new-node type nil value) rest]
-    :else (throw (Exception. "?SYNTAX ERROR"))))
+    [(new-node type nil value) rest]
+    :else (error :syntax-error)))
 
 (defn- parse-expr-begin
   "Parse the beginning of an expression.
@@ -312,7 +313,7 @@
      :for (parse-for rest label)
      :next (parse-next rest label)
      :colon (parse-node rest label)
-     (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label))))))))
+     (error :syntax-error label))))
 
 (defn direct-statement?
   "Determine if an input is a direct statement or not."

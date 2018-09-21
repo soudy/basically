@@ -3,6 +3,7 @@
             [basically.lexer :refer [lex]]
             [basically.parser :refer [parse]]
             [basically.mem :refer :all]
+            [basically.errors :refer [error]]
             [basically.constants :refer [basic-true basic-false]])
   (:import [basically.parser Node NodeList Expr FuncCall])
   (:refer-clojure :exclude [eval]))
@@ -82,7 +83,7 @@
     (let [name (-> value :lhs :value)
           value (eval-expr (:rhs value) mem)]
       (mem-set-var! mem name value))
-    (throw (Exception. "?SYNTAX ERROR" (when label (str "IN " label))))))
+    (error :syntax-error label)))
 
 (defn- get-user-input [prompt]
   (print prompt)
@@ -122,7 +123,7 @@
     :if (eval-if ast value mem)
     :new (mem-reset! mem)
     :run (run-program (mem-get-program mem) mem)
-    (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label)))))))
+    (error :syntax-error label)))
 
 (defn- eval-node-list [ast {:keys [nodes]} mem]
   (doseq [node nodes] (eval-node ast node mem)))

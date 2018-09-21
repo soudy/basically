@@ -1,4 +1,5 @@
 (ns basically.lexer
+  (:require [basically.errors :refer [error]])
   (:refer-clojure :exclude [integer? symbol? string?])
   (:use [clojure.string :only [lower-case join]]))
 
@@ -101,7 +102,7 @@
    (scan-string (eat program) ""))
   ([[current & _ :as program] value]
    (if (empty? program)
-     [(->Token :error value) program] ; Unterminated string
+     (error :syntax-error) ; Unterminated string
      (case current
        \\ (recur (eat program 2) (str value (top program 2)))
        \" [(->Token :string value) (eat program)]
@@ -116,9 +117,9 @@
     (operator? current) (scan-operator program)
     (string? current) (scan-string program)
     (symbol? current) [(->Token (get-symbol-keyword current) current)
-                          (eat program)]
+                       (eat program)]
     (= current \newline) [(->Token :newline current) (eat program)]
-    :else [(->Token :error current) (eat program)]))
+    :else (error :syntax-error)))
 
 (defn lex
   "Lex converts a string into a list of tokens."
