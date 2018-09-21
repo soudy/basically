@@ -35,3 +35,14 @@
     (are [x y] (= x y)
       (mem-get-var mem "A") 15
       (mem-get-var mem "B") "Good")))
+
+(deftest eval-input-statement
+  (let [mem (mem-init)
+        output (with-out-str
+                 (with-in-str "4\n10\n500"
+                   (eval (-> "10 INPUT \"Please give me 3 numbers\"; A%, B%, C%" lex parse) mem)))]
+    (are [x y] (= x y)
+      (mem-get-var mem "A%") 4
+      (mem-get-var mem "B%") 10
+      (mem-get-var mem "C%") 500
+      output "Please give me 3 numbers? ?? ?? ")))

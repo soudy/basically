@@ -89,14 +89,14 @@
      (parse-input tokens label nil [])))
   ([tokens label print-message variables]
    (if (or (empty? tokens) (end-delimiter? tokens))
-     [(new-node label :input (->InputStmt print-message variables)) tokens]
+     [(new-node :input label (->InputStmt print-message variables)) tokens]
      (let [[variable [current & rest :as tokens]] (expect-and-parse tokens [:ident])
            new-variables (conj variables variable)]
        (if (= (:type current) :comma)
          (recur rest label print-message new-variables)
          (do
            (expect-end tokens)
-           [(new-node label :input (->InputStmt print-message new-variables)) tokens]))))))
+           [(new-node :input label (->InputStmt print-message new-variables)) tokens]))))))
 
 (defn- parse-jump
   "Parse the GOTO and GOSUB statements.

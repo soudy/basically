@@ -239,14 +239,14 @@
 20 INPUT A, B, C
 30 INPUT \"Two things please \"; A$, B$" lex parse)]
     (is (= ast
-           [(map->Node {:type "10"
-                        :label :input
+           [(map->Node {:type :input
+                        :label "10"
                         :value (map->InputStmt {:message "How many? "
                                                 :variables [(map->Node {:type :ident
                                                                         :label nil
                                                                         :value "A%"})]})})
-            (map->Node {:type "20"
-                        :label :input
+            (map->Node {:type :input
+                        :label "20"
                         :value (map->InputStmt {:message nil
                                                 :variables [(map->Node {:type :ident
                                                                         :label nil
@@ -257,8 +257,8 @@
                                                             (map->Node {:type :ident
                                                                         :label nil
                                                                         :value "C"})]})})
-            (map->Node {:type "30"
-                        :label :input
+            (map->Node {:type :input
+                        :label "30"
                         :value (map->InputStmt {:message "Two things please "
                                                 :variables [(map->Node {:type :ident
                                                                         :label nil

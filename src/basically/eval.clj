@@ -80,18 +80,36 @@
       (mem-set-var! mem name value))
     (throw (Exception. "?SYNTAX ERROR" (when label (str "IN " label))))))
 
-(defn- eval-node [ast {:keys [type] :as current} mem]
+(defn- get-user-input [prompt]
+  (print prompt)
+  (flush)
+  (let [input (read-line)]
+    (if (re-matches (re-pattern "\\d+") input)
+      (read-string input)
+      (input))))
+
+(defn- eval-input [{message :message [{variable-name :value} & rest] :variables :as input-stmt} mem]
+  (let [prompt (str message "? ")
+        input (get-user-input prompt)]
+    (mem-set-var! mem variable-name input)
+    (when (seq rest)
+      (eval-input (assoc input-stmt :message "?" :variables rest) mem))))
+
+(defn- eval-node [ast {:keys [type value] :as current} mem]
   (if (instance? NodeList current)
     (map #(eval-node ast % mem) current)
     (case type
       :print (eval-print current mem)
       :let (eval-let current mem)
-      :expr (eval-top-level-expr current mem))))
+      :expr (eval-top-level-expr current mem)
+      :input (eval-input value mem))))
 
 (defn eval
   "Evaluate an AST."
   ([ast]
    (eval ast (mem-init) 0))
+  ([ast mem]
+   (eval ast mem 0))
   ([ast mem current]
    (if (= (count ast) current)
      mem
