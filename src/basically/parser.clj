@@ -280,15 +280,15 @@
   ([tokens label]
    (parse-next tokens label []))
   ([tokens label args]
-  (if (or (empty? tokens) (end-delimiter? tokens))
-    [(new-node :next label args) tokens]
-    (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
-          new-args (conj args arg)]
-      (if (= next :comma)
-        (recur rest label new-args)
-        (do
-          (expect-end tokens)
-          [(new-node :next label new-args) tokens]))))))
+   (if (or (empty? tokens) (end-delimiter? tokens))
+     [(new-node :next label args) tokens]
+     (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
+           new-args (conj args arg)]
+       (if (= next :comma)
+         (recur rest label new-args)
+         (do
+           (expect-end tokens)
+           [(new-node :next label new-args) tokens]))))))
 
 (defn- parse-node
   ([tokens]
@@ -320,7 +320,8 @@
   [[{:keys [type]}]]
   (not= type :integer))
 
-(defn- parse-line ([[{:keys [type value]} & rest :as tokens]]
+(defn- parse-line
+  ([[{:keys [type value]} & rest :as tokens]]
    (if (direct-statement? tokens)
      (parse-line tokens [] nil)
      (parse-line rest [] value)))
