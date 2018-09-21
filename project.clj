@@ -1,4 +1,4 @@
-(defproject basically "0.1.0-SNAPSHOT"
+(defproject basically "0.1.0"
   :description "A basic BASIC interpreter, basically"
   :url "https://github.com/soudy/basically"
   :license {:name "MIT License"
