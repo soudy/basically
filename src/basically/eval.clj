@@ -20,6 +20,7 @@
     (instance? Node expr)
     (let [{:keys [type value]} expr]
       (case type
+        :expr (eval-expr value mem) ; Expression wrapped in a node
         :ident (mem-get-var mem value)
         (:integer :float) (read-string value)
         :string value))
@@ -98,7 +99,7 @@
 
 (declare eval-node)
 
-(defn- eval-if [ast {{condition :value} :condition body :body} mem]
+(defn- eval-if [ast {:keys [condition body]} mem]
   (when (= (eval-expr condition mem) basic-true)
     (eval-node ast body mem)))
 
