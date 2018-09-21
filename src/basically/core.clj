@@ -16,8 +16,7 @@
             (run-program line mem)
             (println)
             (println "READY."))
-          (do
-            (mem-append-program! mem (str line "\n"))))
+          (mem-append-program! mem (str line "\n")))
         (catch Exception e
           (println (.getMessage e))
           (println)))
