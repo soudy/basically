@@ -298,14 +298,14 @@
      :input (parse-input rest label)
      :comment [(new-node :noop label) rest]
      (:goto :gosub) (parse-jump rest label type)
-     (:return :new :clr :stop) ; Statements without arguments
-      (do
-        (expect-end rest)
-        [(new-node type label) rest])
+     (:return :new :clr :stop :run) ; Statements without arguments
+     (do
+       (expect-end rest)
+       [(new-node type label) rest])
      (:ident :float :integer :string)
-       (if (or (function-call? tokens) (operator? (first rest)))
-         (parse-expr tokens label)
-         [(new-node type label value) rest])
+     (if (or (function-call? tokens) (operator? (first rest)))
+       (parse-expr tokens label)
+       [(new-node type label value) rest])
      :if (parse-if rest label)
      :def (parse-def rest label)
      :let (parse-let rest label)

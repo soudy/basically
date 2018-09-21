@@ -62,9 +62,10 @@
           (map->Token {:type :read :value "READ"})
           (map->Token {:type :get :value "GET"})
           (map->Token {:type :stop :value "STOP"})
-          (map->Token {:type :new :value "NEW"})]
+          (map->Token {:type :new :value "NEW"})
+          (map->Token {:type :run :value "RUN"})]
          (lex "LET IF THEN FOR TO STEP next GOTO GOSUB ON def FN END
-               PRINT AND OR RETURN input CLR DATA READ GET STOP NEW"))))
+               PRINT AND OR RETURN input CLR DATA READ GET STOP NEW RUN"))))
 
 (deftest lex-operators
   (is (= [(map->Token {:type :- :value "-"})

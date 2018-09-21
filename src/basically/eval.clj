@@ -1,5 +1,7 @@
 (ns basically.eval
   (:require [basically.expr :refer [exec-expr]]
+            [basically.lexer :refer [lex]]
+            [basically.parser :refer [parse]]
             [basically.mem :refer :all]
             [basically.constants :refer [basic-true basic-false]])
   (:import [basically.parser Node NodeList Expr FuncCall])
@@ -103,14 +105,24 @@
   (when (= (eval-expr condition mem) basic-true)
     (eval-node ast body mem)))
 
-(defn- eval-node [ast {:keys [type value] :as current} mem]
+(declare eval)
+
+(defn run-program [program mem]
+  (-> program
+      lex
+      parse
+      (eval mem)))
+
+(defn- eval-node [ast {:keys [type value label] :as current} mem]
   (case type
     :print (eval-print current mem)
     :let (eval-let value mem)
     :expr (eval-top-level-expr current mem)
     :input (eval-input value mem)
     :if (eval-if ast value mem)
-    :new (mem-reset! mem)))
+    :new (mem-reset! mem)
+    :run (run-program (mem-get-program mem) mem)
+    (throw (Exception. (str "?SYNTAX ERROR" (when label (str " IN " label)))))))
 
 (defn- eval-node-list [ast {:keys [nodes]} mem]
   (doseq [node nodes] (eval-node ast node mem)))
