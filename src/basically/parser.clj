@@ -55,8 +55,7 @@
   Examples:
     PRINT \"Hello, world!\"
     PRINT 2;4
-    PRINT A,B,C;
-  "
+    PRINT A,B,C;"
   ([tokens label]
    (parse-print tokens (new-node :print label) []))
   ([[{:keys [type]} & rest :as tokens] node values]
@@ -125,10 +124,13 @@
                  :* {:prec 5 :assoc :left}
                  :/ {:prec 5 :assoc :left}
                  :not {:prec 6 :assoc :left}
-                 :exp {:prec 7 :assoc :right}}]
-  (defn- operator? [{:keys [type]}] (some (partial = type) (keys operators)))
-  (defn- get-prec [{:keys [type]}] (get-in operators [type :prec]))
-  (defn- get-assoc [{:keys [type]}] (get-in operators [type :assoc])))
+                 :unary- {:prec 7 :assoc :left}
+                 :unary+ {:prec 7 :assoc :left}}]
+  (defn- operator? [type] (some (partial = type) (keys operators)))
+  (defn- unary-operator? [type]
+    (some (partial = type) [:not :unary- :unary+]))
+  (defn- get-prec [type] (get-in operators [type :prec]))
+  (defn- get-assoc [type] (get-in operators [type :assoc])))
 
 (declare parse-expr-begin)
 
@@ -171,7 +173,13 @@
     <expr-value> ::= <unary-op> <expr> | \"(\" <expr> \")\" | <value> | <fn-call>"
   [[{:keys [type value]} & rest :as tokens]]
   (cond
-    (or (function-call? tokens) (= type :fn)) (parse-function-call tokens)
+    (unary-operator? type)
+    (let [prec (get-prec type)
+          [expr tokens] (parse-expr-begin rest prec)]
+      [(->Expr type nil expr) tokens])
+
+    (or (function-call? tokens) (= type :fn))
+    (parse-function-call tokens)
 
     (= type :lparen)
     (let [[expr tokens] (parse-expr-begin rest)
@@ -180,6 +188,7 @@
 
     (some #{type} [:integer :float :ident :string])
     [(new-node type nil value) rest]
+
     :else (error :syntax-error)))
 
 (defn- parse-expr-begin
@@ -192,11 +201,11 @@
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
      (parse-expr-begin tokens prec expr)))
-  ([[current & rest :as tokens] operator-prec expr]
-   (if-let [current-prec (get-prec current)]
+  ([[{:keys [type] :as current} & rest :as tokens] operator-prec expr]
+   (if-let [current-prec (get-prec type)]
      (if-not (>= current-prec operator-prec)
        [expr tokens]
-       (let [new-prec (case (get-assoc current)
+       (let [new-prec (case (get-assoc type)
                         :right current-prec
                         :left (inc current-prec))
              [rhs tokens] (parse-expr-begin rest new-prec)
@@ -304,7 +313,7 @@
        (expect-end rest)
        [(new-node type label) rest])
      (:ident :float :integer :string)
-     (if (or (function-call? tokens) (operator? (first rest)))
+     (if (or (function-call? tokens) (operator? (:type (first rest))))
        (parse-expr tokens label)
        [(new-node type label value) rest])
      :if (parse-if rest label)
@@ -313,7 +322,9 @@
      :for (parse-for rest label)
      :next (parse-next rest label)
      :colon (parse-node rest label)
-     (error :syntax-error label))))
+     (if (operator? type)
+       (parse-expr tokens label)
+       (error :syntax-error label)))))
 
 (defn direct-statement?
   "Determine if an input is a direct statement or not."
@@ -321,17 +332,17 @@
   (not= type :integer))
 
 (defn- parse-line
-  ([[{:keys [type value]} & rest :as tokens]]
-   (if (direct-statement? tokens)
-     (parse-line tokens [] nil)
-     (parse-line rest [] value)))
-  ([[{:keys [type]} & rest :as tokens] nodes label]
-   (if (or (empty? tokens) (= type :newline))
-     (if (= (count nodes) 1)
-       [(nth nodes 0) rest]
-       [(->NodeList label nodes) rest])
-     (let [[node tokens] (parse-node tokens label)]
-       (recur tokens (conj nodes node) label)))))
+([[{:keys [type value]} & rest :as tokens]]
+  (if (direct-statement? tokens)
+    (parse-line tokens [] nil)
+    (parse-line rest [] value)))
+([[{:keys [type]} & rest :as tokens] nodes label]
+  (if (or (empty? tokens) (= type :newline))
+    (if (= (count nodes) 1)
+      [(nth nodes 0) rest]
+      [(->NodeList label nodes) rest])
+    (let [[node tokens] (parse-node tokens label)]
+      (recur tokens (conj nodes node) label)))))
 
 (defn parse
   ([tokens]

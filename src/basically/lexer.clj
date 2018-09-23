@@ -91,16 +91,27 @@
       [(assoc token :type keyword) program]
       [token program])))
 
-(defn- scan-operator [program]
+(defn- unary?
+  "If the previous token is not an identifier, `)', string or number, it's
+  a unary operator. Only `+' and `-' can be unary."
+  [operator {prev-type :type}]
+  (and (or (= operator \+) (= operator \-))
+       (not (some (partial = prev-type)
+                  [:ident :rparen :string :float :integer]))))
+
+(defn- scan-operator [[current :as program] prev-token]
   (if-let [operator (some #{(top program 2)} ["<>" "<=" ">="])]
     [(->Token (keyword operator) operator) (eat program 2)]
-    (let [operator (str (top program))]
-      [(->Token (keyword operator) operator) (eat program)])))
+    (if (unary? current prev-token)
+      (let [operator (str "unary" current)]
+        [(->Token (keyword operator) (str current)) (eat program)])
+      (let [operator (str (top program))]
+        [(->Token (keyword operator) operator) (eat program)]))))
 
 (defn- scan-string
   ([program]
    (scan-string (eat program) ""))
-  ([[current & _ :as program] value]
+  ([[current :as program] value]
    (if (empty? program)
      (error :syntax-error) ; Unterminated string
      (case current
@@ -108,13 +119,13 @@
        \" [(->Token :string value) (eat program)]
        (recur (eat program) (str value current))))))
 
-(defn- scan-token [[current & _ :as program]]
+(defn- scan-token [[current :as program] prev-token]
   (cond
     (whitespace? current) [nil (eat program)]
     (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
     (or (integer? current) (= current \.)) (scan-number program)
     (ident? current) (scan-ident program)
-    (operator? current) (scan-operator program)
+    (operator? current) (scan-operator program prev-token)
     (string? current) (scan-string program)
     (symbol? current) [(->Token (get-symbol-keyword current) current)
                        (eat program)]
@@ -127,7 +138,7 @@
   ([program tokens]
    (if (empty? program)
      tokens
-     (let [[token program] (scan-token program)]
+     (let [[token program] (scan-token program (last tokens))]
        (if-not (nil? token)
          (recur program (conj tokens token))
          ;; If we get no token, we're skipping whitespace or comment

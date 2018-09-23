@@ -68,8 +68,14 @@
                PRINT AND OR RETURN input CLR DATA READ GET STOP NEW RUN"))))
 
 (deftest lex-operators
-  (is (= [(map->Token {:type :- :value "-"})
+  (is (= [
+          (map->Token {:type :unary- :value "-"})
+          (map->Token {:type :integer :value "2"})
+          (map->Token {:type :- :value "-"})
+          (map->Token {:type :integer :value "3"})
           (map->Token {:type :+ :value "+"})
+          (map->Token {:type :unary+ :value "+"})
+          (map->Token {:type :integer :value "5"})
           (map->Token {:type :* :value "*"})
           (map->Token {:type :/ :value "/"})
           (map->Token {:type :< :value "<"})
@@ -78,7 +84,7 @@
           (map->Token {:type :>= :value ">="})
           (map->Token {:type :> :value ">"})
           (map->Token {:type :<> :value "<>"})]
-         (lex "- + * / < <= = >= > <>"))))
+         (lex "-2 - 3 + +5 * / < <= = >= > <>"))))
 
 (deftest lex-strings
   (is (= [(map->Token {:type :string :value "Hello, world"})

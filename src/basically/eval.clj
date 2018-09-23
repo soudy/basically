@@ -34,10 +34,14 @@
 
     ;; Operations
     (instance? Expr expr)
-    (let [{:keys [operator lhs rhs]} expr
-          lhs (eval-expr lhs mem)
-          rhs (eval-expr rhs mem)]
-      (exec-expr operator lhs rhs))))
+    (let [{:keys [operator lhs rhs]} expr]
+      (if (nil? lhs)
+        ;; Unary operator
+        (let [rhs (eval-expr rhs mem)]
+          (exec-expr operator nil rhs))
+        (let [lhs (eval-expr lhs mem)
+              rhs (eval-expr rhs mem)]
+          (exec-expr operator lhs rhs))))))
 
 (defn- eval-print-arg [[{:keys [type value]} & [{next-type :type}] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon

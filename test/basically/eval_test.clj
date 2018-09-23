@@ -16,9 +16,10 @@
 
 (deftest eval-expression
   (let [stdout (-> "10 PRINT 2 * (5 + 10)
+15 PRINT +9 *(-20)
 20 PRINT \"PEAR\" <> \"APPLE\" AND \"YELLOW\" <> \"BLUE\""
                    lex parse eval with-out-str)]
-    (is (= "30\n-1\n" stdout))))
+    (is (= "30\n-180\n-1\n" stdout))))
 
 (deftest eval-assignment
   (let [mem (-> "10 LET A=20*20

@@ -28,6 +28,9 @@
     :and (do
            (expect-types (and (number? lhs) (number? rhs)))
            (bit-and (int lhs) (int rhs)))
+    :not (do
+           (expect-types (number? rhs))
+           (bit-not (int rhs)))
     :+ (cond
          (and (number? lhs) (number? rhs)) (+ lhs rhs)
          (and (string? lhs) (string? rhs)) (str lhs rhs)
@@ -35,6 +38,12 @@
     (:- :* :/) (do
                  (expect-types (and (number? lhs) (number? rhs)))
                  (apply-op operator lhs rhs))
+    :unary- (do
+              (expect-types (number? rhs))
+              (- rhs))
+    :unary+ (do
+              (expect-types (number? rhs))
+              (+ rhs))
     (:< :<= :> :>=) (cond
                       (and (number? lhs) (number? rhs))
                       (if (apply-op operator lhs rhs) basic-true basic-false)

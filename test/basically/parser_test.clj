@@ -89,8 +89,8 @@
            ast))))
 
 (deftest parse-expressions
-  (let [ast (-> "10 A%=2 + 2 * 10
-20 PRINT 2^32 * (2 + 5 - (3))" lex parse)]
+  (let [ast (-> "10 A%=2 + 2 * -10
+20 PRINT 2/32 * (2 + 5 - (3))" lex parse)]
     (is (= [(map->Node
              {:type :expr
               :label "10"
@@ -106,10 +106,12 @@
                                                :lhs (map->Node {:type :integer
                                                                 :label nil
                                                                 :value "2"})
-                                               :rhs (map->Node {:type :integer
-                                                                :label nil
-                                                                :value
-                                                                "10"})})})})})
+                                               :rhs (map->Expr
+                                                     {:operator :unary-
+                                                      :lhs nil
+                                                      :rhs (map->Node {:type :integer
+                                                                       :label nil
+                                                                       :value "10"})})})})})})
 
             (map->Node
              {:type :print
@@ -118,7 +120,7 @@
                                   :label nil
                                   :value (map->Expr
                                           {:operator :*
-                                           :lhs (map->Expr {:operator :exp
+                                           :lhs (map->Expr {:operator :/
                                                             :lhs (map->Node
                                                                   {:type :integer
                                                                    :label nil
