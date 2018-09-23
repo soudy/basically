@@ -91,7 +91,7 @@
   (let [input (read-line)]
     (if (re-matches (re-pattern "(\\d+(\\.\\d+)?)") input)
       (read-string input)
-      (input))))
+      input)))
 
 (defn- eval-input [{message :message [{variable-name :value} & rest] :variables :as input-stmt} mem]
   (let [prompt (str message "? ")
