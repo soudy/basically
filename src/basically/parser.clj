@@ -315,6 +315,7 @@
      (if (or (function-call? tokens) (operator? (:type (first rest))))
        (parse-expr tokens label)
        [(new-node type label value) rest])
+     :fn (parse-expr tokens label)
      :if (parse-if rest label)
      :def (parse-def rest label)
      :let (parse-let rest label)
