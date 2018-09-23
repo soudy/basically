@@ -127,10 +127,17 @@
     :if (eval-if ast value mem)
     :new (mem-reset! mem)
     :run (run-program (mem-get-program mem) mem)
+    :goto (mem-set-jump! mem (:value value))
     (error :syntax-error label)))
 
 (defn- eval-node-list [ast {:keys [nodes]} mem]
   (doseq [node nodes] (eval-node ast node mem)))
+
+(defn- find-line-index [ast line]
+  (let [index (keep-indexed #(when (= line (:label %2)) %1) ast)]
+    (if-not (seq index)
+      nil
+      (nth index 0))))
 
 (defn eval
   "Evaluate an AST."
@@ -139,10 +146,20 @@
   ([ast mem]
    (eval ast mem 0))
   ([ast mem current]
-   (if (= (count ast) current)
-     mem
-     (let [current-node (get ast current)]
-       (if (instance? NodeList current-node)
-         (eval-node-list ast current-node mem)
-         (eval-node ast current-node mem))
-       (recur ast mem (inc current))))))
+   (cond
+     (mem-get-jump mem)
+     (if-let [index (find-line-index ast (mem-get-jump mem))]
+       (do
+         (mem-reset-jump! mem)
+         (recur ast mem index))
+       (error :undefd-statement))
+
+     :else
+     (do
+       (if (= (count ast) current)
+         mem
+         (let [current-node (get ast current)]
+           (if (instance? NodeList current-node)
+             (eval-node-list ast current-node mem)
+             (eval-node ast current-node mem))
+           (recur ast mem (inc current))))))))

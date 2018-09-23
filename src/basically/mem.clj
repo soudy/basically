@@ -32,3 +32,12 @@
 
 (defn mem-get-program [mem]
   (:program @mem))
+
+(defn mem-set-jump! [mem line]
+  (swap! mem assoc :jump-line line))
+
+(defn mem-reset-jump! [mem]
+  (swap! mem assoc :jump-line nil))
+
+(defn mem-get-jump [mem]
+  (:jump-line @mem))
