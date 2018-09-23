@@ -26,7 +26,7 @@
           (map->Token {:type :comment :value ""})]
          (lex "REM This does something important!
                REM Do not touch!
-               REM") )))
+               REM"))))
 
 (deftest lex-identifiers
   (is (= [(map->Token {:type :ident :value "A"})
@@ -68,8 +68,7 @@
                PRINT AND OR RETURN input CLR DATA READ GET STOP NEW RUN"))))
 
 (deftest lex-operators
-  (is (= [
-          (map->Token {:type :unary- :value "-"})
+  (is (= [(map->Token {:type :unary- :value "-"})
           (map->Token {:type :integer :value "2"})
           (map->Token {:type :- :value "-"})
           (map->Token {:type :integer :value "3"})

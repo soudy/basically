@@ -145,7 +145,6 @@
                                                                              :value "3"})})})})]})]
            ast))))
 
-
 (deftest parse-function-expression
   (let [ast (-> "10 PRINT ABS(10) + FN SQRT(3.5 * 10)" lex parse)]
     (is (= [(map->Node
@@ -176,7 +175,6 @@
                                                                                      :value "10"})})})]
                                         :user-function? true})})})]})]
            ast))))
-
 
 (deftest parse-if-statement
   (let [ast (-> "10 IF A < B AND B < C THEN 20
@@ -291,7 +289,6 @@
                                                                              :value "X"})})})})})]
            ast))))
 
-
 (deftest parse-let-statement
   (let [ast (-> "10 LET A=\"BASIC RULES!\"
 20 LET TAU = PI * 2" lex parse)]
@@ -320,7 +317,6 @@
                                                                               :label nil
                                                                               :value "2"})})})})})]
            ast))))
-
 
 (deftest parse-for-loop
   (let [ast (-> "10 FOR I=1 TO 100

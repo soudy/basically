@@ -127,8 +127,7 @@
                  :unary- {:prec 7 :assoc :left}
                  :unary+ {:prec 7 :assoc :left}}]
   (defn- operator? [type] (some (partial = type) (keys operators)))
-  (defn- unary-operator? [type]
-    (some (partial = type) [:not :unary- :unary+]))
+  (defn- unary-operator? [type] (some (partial = type) [:not :unary- :unary+]))
   (defn- get-prec [type] (get-in operators [type :prec]))
   (defn- get-assoc [type] (get-in operators [type :assoc])))
 
@@ -332,17 +331,17 @@
   (not= type :integer))
 
 (defn- parse-line
-([[{:keys [type value]} & rest :as tokens]]
-  (if (direct-statement? tokens)
-    (parse-line tokens [] nil)
-    (parse-line rest [] value)))
-([[{:keys [type]} & rest :as tokens] nodes label]
-  (if (or (empty? tokens) (= type :newline))
-    (if (= (count nodes) 1)
-      [(nth nodes 0) rest]
-      [(->NodeList label nodes) rest])
-    (let [[node tokens] (parse-node tokens label)]
-      (recur tokens (conj nodes node) label)))))
+  ([[{:keys [type value]} & rest :as tokens]]
+   (if (direct-statement? tokens)
+     (parse-line tokens [] nil)
+     (parse-line rest [] value)))
+  ([[{:keys [type]} & rest :as tokens] nodes label]
+   (if (or (empty? tokens) (= type :newline))
+     (if (= (count nodes) 1)
+       [(nth nodes 0) rest]
+       [(->NodeList label nodes) rest])
+     (let [[node tokens] (parse-node tokens label)]
+       (recur tokens (conj nodes node) label)))))
 
 (defn parse
   ([tokens]
