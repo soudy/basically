@@ -128,6 +128,7 @@
     :new (mem-reset! mem)
     :run (run-program (mem-get-program mem) mem)
     :goto (mem-set-jump! mem (:value value))
+    :noop nil
     (error :syntax-error label)))
 
 (defn- eval-node-list [ast {:keys [nodes]} mem]
