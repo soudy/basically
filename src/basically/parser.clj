@@ -200,7 +200,7 @@
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
      (parse-expr-begin tokens prec expr)))
-  ([[{:keys [type] :as current} & rest :as tokens] operator-prec expr]
+  ([[{:keys [type]} & rest :as tokens] operator-prec expr]
    (if-let [current-prec (get-prec type)]
      (if-not (>= current-prec operator-prec)
        [expr tokens]
@@ -208,7 +208,7 @@
                         :right current-prec
                         :left (inc current-prec))
              [rhs tokens] (parse-expr-begin rest new-prec)
-             expr (->Expr (:type current) expr rhs)]
+             expr (->Expr type expr rhs)]
          (recur tokens operator-prec expr)))
      [expr tokens])))
 
