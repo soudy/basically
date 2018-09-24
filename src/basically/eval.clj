@@ -175,11 +175,10 @@
        mem)
 
      :else
-     (do
-       (if (= (count ast) current)
-         mem
-         (let [current-node (get ast current)]
-           (if (instance? NodeList current-node)
-             (eval-node-list ast current-node mem)
-             (eval-node ast current-node mem))
-           (recur ast mem (inc current))))))))
+     (if (= (count ast) current)
+       mem
+       (let [current-node (get ast current)]
+         (if (instance? NodeList current-node)
+           (eval-node-list ast current-node mem)
+           (eval-node ast current-node mem))
+         (recur ast mem (inc current)))))))
