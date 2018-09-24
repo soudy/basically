@@ -126,6 +126,10 @@
 (defn- eval-gosub [ast {:keys [value]} mem]
   (mem-set-jump! mem value))
 
+(defn- eval-end [mem]
+  (mem-reset! mem)
+  (mem-set-end! mem))
+
 (defn- eval-node [ast {:keys [type value label] :as current} mem]
   (case type
     :print (eval-print current mem)
@@ -138,7 +142,7 @@
     :goto (mem-set-jump! mem (:value value))
     :gosub (eval-gosub ast value mem)
     :noop nil
-    :end (mem-set-end! mem)
+    :end (eval-end mem)
     (error :syntax-error label)))
 
 (defn- eval-node-list [ast {:keys [nodes]} mem]
