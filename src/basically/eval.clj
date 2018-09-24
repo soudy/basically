@@ -41,7 +41,9 @@
           (exec-expr operator nil rhs))
         (let [lhs (eval-expr lhs mem)
               rhs (eval-expr rhs mem)]
-          (exec-expr operator lhs rhs))))))
+          (exec-expr operator lhs rhs))))
+
+    :else (error :syntax-error)))
 
 (defn- eval-print-arg [[{:keys [type value]} & [{next-type :type}] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
