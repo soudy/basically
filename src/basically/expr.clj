@@ -48,9 +48,9 @@
                       (and (number? lhs) (number? rhs))
                       (if (apply-op operator lhs rhs) basic-true basic-false)
 
-                      (and (string? lhs) (string? rhs))
                       ;; Compare the ASCII value of the first character
                       ;; when comparing strings
+                      (and (string? lhs) (string? rhs))
                       (if (apply-op operator
                                     (int (first lhs))
                                     (int (first rhs)))
