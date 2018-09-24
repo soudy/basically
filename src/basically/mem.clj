@@ -3,11 +3,11 @@
   (:use [clojure.string :only [lower-case]]))
 
 (def initial-memory
-  {:current-line nil    ; Current BASIC line number
-   :jump-line nil       ; Line number during GOSUB, GOTO and RUN
-   :variables {}        ; Name and value of current variables
+  {:variables {}        ; Name and value of current variables
    :functions functions ; Name and body of current functions
-   :program ""})        ; Current program
+   :program ""          ; Current program
+   :jump-line nil       ; Line number during GOSUB, GOTO and RUN
+   :end? false})        ; End program
 
 (defn mem-init []
   (atom initial-memory))
@@ -41,3 +41,12 @@
 
 (defn mem-get-jump [mem]
   (:jump-line @mem))
+
+(defn mem-end? [mem]
+  (:end? @mem))
+
+(defn mem-set-end! [mem]
+  (swap! mem assoc :end? true))
+
+(defn mem-reset-end! [mem]
+  (swap! mem assoc :end? false))

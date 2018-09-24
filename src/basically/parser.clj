@@ -307,7 +307,7 @@
      :input (parse-input rest label)
      :comment [(new-node :noop label) rest]
      (:goto :gosub) (parse-jump rest label type)
-     (:return :new :clr :stop :run) ; Statements without arguments
+     (:return :new :clr :stop :run :end) ; Statements without arguments
      (do
        (expect-end rest)
        [(new-node type label) rest])

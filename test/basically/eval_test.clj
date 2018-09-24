@@ -62,3 +62,8 @@
 50 GOTO 60
 60 PRINT \"Sixty!\"" lex parse eval with-out-str)]
     (is (= "Sixty!\n" stdout))))
+
+(deftest eval-end-statement
+  (let [stdout (-> "10 END
+20 PRINT \"I'm not here\"" lex parse eval with-out-str)]
+    (is (= "" stdout))))
