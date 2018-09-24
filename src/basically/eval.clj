@@ -110,7 +110,10 @@
 
 (defn- eval-if [ast {:keys [condition body]} mem]
   (when (= (eval-expr condition mem) basic-true)
-    (eval-node ast body mem)))
+    (if (and (instance? Node body) (= (:type body) :integer))
+      ;; A single integer node as if body acts as goto
+      (mem-set-jump! mem (:value body))
+      (eval-node ast body mem))))
 
 (declare eval)
 
