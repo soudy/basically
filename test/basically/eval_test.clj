@@ -56,6 +56,11 @@
 20 IF 5 <> 5 THEN PRINT \"Something is wrong...\"" lex parse eval with-out-str)]
     (is (= "5 equals 5\n" stdout))))
 
+(deftest eval-end-statement
+  (let [stdout (-> "10 END
+20 PRINT \"I'm not here\"" lex parse eval with-out-str)]
+    (is (= "" stdout))))
+
 (deftest eval-if-goto-statement
   (let [stdout (-> "10 IF 5 = 5 THEN 30
 20 END
@@ -70,8 +75,3 @@
 50 GOTO 60
 60 PRINT \"Sixty!\"" lex parse eval with-out-str)]
     (is (= "Sixty!\n" stdout))))
-
-(deftest eval-end-statement
-  (let [stdout (-> "10 END
-20 PRINT \"I'm not here\"" lex parse eval with-out-str)]
-    (is (= "" stdout))))
