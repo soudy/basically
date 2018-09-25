@@ -8,8 +8,6 @@
   (:import [basically.parser Node NodeList Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
-(defn- node-number? [type] (or (= type :integer) (= type :float)))
-
 (declare eval-expr)
 
 (defn- eval-func-call [{:keys [name args]} mem]
