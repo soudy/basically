@@ -6,7 +6,7 @@
   {:variables {}        ; Name and value of current variables
    :functions functions ; Name and body of current functions
    :program ""          ; Current program
-   :jump-line nil       ; Line number during GOSUB, GOTO and RUN
+   :jump-line nil       ; Line number during GOSUB, GOTO, RUN and FOR
    :loop-stack []       ; For loop stack
    :end? false})        ; End program
 

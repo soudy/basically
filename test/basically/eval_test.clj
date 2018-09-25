@@ -83,3 +83,10 @@
 30 NEXT
 40 PRINT \"END\"" lex parse eval with-out-str)]
     (is (= " 0\n 1\n 2\n 3\n 4\n 5\n 6\n 7\n 8\n 9\n 10\nEND\n" stdout))))
+
+(deftest eval-run-statement
+  (let [mem (mem/init)
+        _ (mem/append-program! mem "10 PRINT \"Don't run me!\"\n
+20 PRINT \"Start!\"")
+        stdout (-> "RUN 20" lex parse (eval mem) with-out-str)]
+    (is (= "Start!\n" stdout))))

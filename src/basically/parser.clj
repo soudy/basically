@@ -110,6 +110,21 @@
     (expect-end tokens)
     [(new-node type label arg) tokens]))
 
+(defn- parse-run
+  "Parse a RUN statement.
+
+  Syntax:
+    RUN [<integer>]
+
+  Examples:
+    RUN
+    RUN 50"
+  [tokens label]
+  (if (or (empty? tokens) (end-delimiter? tokens))
+    [(new-node :run label) tokens]
+    (let [[{jump :value} tokens] (expect tokens [:integer])]
+      [(new-node :run label jump) tokens])))
+
 ;; Operators with their precedence and associativity
 (let [operators {:=  {:prec 0 :assoc :right}
                  :or {:prec 1 :assoc :right}
@@ -313,7 +328,8 @@
      :input (parse-input rest label)
      :comment [(new-node :noop label) rest]
      (:goto :gosub) (parse-jump rest label type)
-     (:return :new :clr :stop :run :end) ; Statements without arguments
+     :run (parse-run rest label)
+     (:return :new :clr :stop :end) ; Statements without arguments
      (do
        (expect-end rest)
        [(new-node type label) rest])

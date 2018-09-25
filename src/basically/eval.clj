@@ -129,9 +129,13 @@
       parse
       (eval mem)))
 
+(defn- eval-run [start-at mem]
+  (when-not (nil? start-at)
+    (mem/set-jump! mem start-at))
+  (run-program (mem/get-program mem) mem))
+
 (defn- eval-gosub [{:keys [value]} mem]
   (mem/set-jump! mem value))
-
 
 (defn- eval-for [{:keys [counter counter-value] :as for-loop} label mem]
   (let [label (if (nil? label) :direct label)
@@ -162,7 +166,7 @@
     :input (eval-input value mem)
     :if (eval-if value mem)
     :new (mem/clear! mem)
-    :run (run-program (mem/get-program mem) mem)
+    :run (eval-run value mem)
     :goto (mem/set-jump! mem (:value value))
     :gosub (eval-gosub value mem)
     :for (eval-for value label mem)

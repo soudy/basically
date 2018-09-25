@@ -346,3 +346,14 @@
                         :label "30"
                         :value []})]
            ast))))
+
+(deftest parse-run-statement
+  (let [ast (-> "10 RUN
+20 RUN 30" lex parse)]
+    (is (= [(map->Node {:type :run
+                        :label "10"
+                        :value nil})
+            (map->Node {:type :run
+                        :label "20"
+                        :value "30"})]
+           ast))))
