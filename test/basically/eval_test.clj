@@ -3,7 +3,7 @@
             [basically.lexer :refer :all]
             [basically.parser :refer :all]
             [basically.eval :refer :all]
-            [basically.mem :refer :all])
+            [basically.mem :as mem])
   (:refer-clojure :exclude [eval]))
 
 (deftest eval-print-statement
@@ -25,19 +25,19 @@
 20 B$=\"100\"+\"100\"
 30 C=A/2" lex parse eval)]
     (are [x y] (= x y)
-      (mem-get-var mem "A") 400
-      (mem-get-var mem "B$") "100100"
-      (mem-get-var mem "C") 200)))
+      (mem/get-var mem "A") 400
+      (mem/get-var mem "B$") "100100"
+      (mem/get-var mem "C") 200)))
 
 (deftest eval-function-call
   (let [mem (-> "10 A=SQR(25) + 10
 20 B=LEFT$(\"Good morning!\", 4)" lex parse eval)]
     (are [x y] (= x y)
-      (mem-get-var mem "A") 15
-      (mem-get-var mem "B") "Good")))
+      (mem/get-var mem "A") 15
+      (mem/get-var mem "B") "Good")))
 
 (deftest eval-input-statement
-  (let [mem (mem-init)
+  (let [mem (mem/init)
         program "10 INPUT \"Please give me 3 numbers\"; A%, B%, C%"
         stdout (with-in-str "4\n10.5\n500"
                  (-> program
@@ -46,9 +46,9 @@
                      (eval mem)
                      with-out-str))]
     (are [x y] (= x y)
-      (mem-get-var mem "A%") 4
-      (mem-get-var mem "B%") 10.5
-      (mem-get-var mem "C%") 500
+      (mem/get-var mem "A%") 4
+      (mem/get-var mem "B%") 10.5
+      (mem/get-var mem "C%") 500
       stdout "Please give me 3 numbers? ?? ?? ")))
 
 (deftest eval-if-statement

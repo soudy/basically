@@ -2,7 +2,7 @@
   (:require [basically.expr :refer [exec-expr]]
             [basically.lexer :refer [lex]]
             [basically.parser :refer [parse]]
-            [basically.mem :refer :all]
+            [basically.mem :as mem]
             [basically.errors :refer [error]]
             [basically.constants :refer [basic-true basic-false]])
   (:import [basically.parser Node NodeList Expr FuncCall])
@@ -13,7 +13,7 @@
 (declare eval-expr)
 
 (defn- eval-func-call [{:keys [name args]} mem]
-  (if-let [func (mem-get-func mem name)]
+  (if-let [func (mem/get-func mem name)]
     (apply func (map #(eval-expr % mem) args))
     0))
 
@@ -24,7 +24,7 @@
     (let [{:keys [type value]} expr]
       (case type
         :expr (eval-expr value mem) ; Expression wrapped in a node
-        :ident (mem-get-var mem value)
+        :ident (mem/get-var mem value)
         (:integer :float) (read-string value)
         :string value))
 
@@ -79,7 +79,7 @@
     (print message)))
 
 (defn- eval-let [{name :name expr-node :value} mem]
-  (mem-set-var! mem name (eval-expr (:value expr-node) mem)))
+  (mem/set-var! mem name (eval-expr (:value expr-node) mem)))
 
 (defn- assignment-expr? [expr]
   (and (instance? Expr expr)) (= (:operator expr) :=))
@@ -88,7 +88,7 @@
   (if (assignment-expr? value)
     (let [name (-> value :lhs :value)
           value (eval-expr (:rhs value) mem)]
-      (mem-set-var! mem name value))
+      (mem/set-var! mem name value))
     (error :syntax-error label)))
 
 (defn- get-user-input [prompt]
@@ -102,7 +102,7 @@
 (defn- eval-input [{message :message [{variable-name :value} & rest] :variables :as input-stmt} mem]
   (let [prompt (str message "? ")
         input (get-user-input prompt)]
-    (mem-set-var! mem variable-name input)
+    (mem/set-var! mem variable-name input)
     (when (seq rest)
       (eval-input (assoc input-stmt :message "?" :variables rest) mem))))
 
@@ -112,7 +112,7 @@
   (when (= (eval-expr condition mem) basic-true)
     (if (and (instance? Node body) (= (:type body) :integer))
       ;; A single integer node as if body acts as goto
-      (mem-set-jump! mem (:value body))
+      (mem/set-jump! mem (:value body))
       (eval-node ast body mem))))
 
 (declare eval)
@@ -124,11 +124,14 @@
       (eval mem)))
 
 (defn- eval-gosub [ast {:keys [value]} mem]
-  (mem-set-jump! mem value))
+  (mem/set-jump! mem value))
+
+(defn- eval-for [ast for-loop mem]
+  )
 
 (defn- eval-end [mem]
-  (mem-reset! mem)
-  (mem-set-end! mem))
+  (mem/clear! mem)
+  (mem/set-end! mem))
 
 (defn- eval-node [ast {:keys [type value label] :as current} mem]
   (case type
@@ -137,10 +140,11 @@
     :expr (eval-top-level-expr current mem)
     :input (eval-input value mem)
     :if (eval-if ast value mem)
-    :new (mem-reset! mem)
-    :run (run-program (mem-get-program mem) mem)
-    :goto (mem-set-jump! mem (:value value))
+    :new (mem/clear! mem)
+    :run (run-program (mem/get-program mem) mem)
+    :goto (mem/set-jump! mem (:value value))
     :gosub (eval-gosub ast value mem)
+    :for (eval-for ast value mem)
     :noop nil
     :end (eval-end mem)
     (error :syntax-error label)))
@@ -157,21 +161,21 @@
 (defn eval
   "Evaluate an AST."
   ([ast]
-   (eval ast (mem-init) 0))
+   (eval ast (mem/init) 0))
   ([ast mem]
    (eval ast mem 0))
   ([ast mem current]
    (cond
-     (mem-get-jump mem)
-     (if-let [index (find-line-index ast (mem-get-jump mem))]
+     (mem/get-jump mem)
+     (if-let [index (find-line-index ast (mem/get-jump mem))]
        (do
-         (mem-reset-jump! mem)
+         (mem/clear-jump! mem)
          (recur ast mem index))
        (error :undefd-statement))
 
-     (mem-end? mem)
+     (mem/end? mem)
      (do
-       (mem-reset-end! mem)
+       (mem/clear-end! mem)
        mem)
 
      :else

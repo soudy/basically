@@ -3,11 +3,11 @@
   (:require [basically.lexer :refer [lex]]
             [basically.parser :refer [direct-statement?]]
             [basically.eval :refer [run-program]]
-            [basically.mem :refer :all]))
+            [basically.mem :as mem]))
 
 (defn repl []
   (println "READY.")
-  (loop [mem (mem-init)]
+  (loop [mem (mem/init)]
     (flush)
     (let [line (read-line)]
       (try
@@ -16,7 +16,7 @@
             (run-program line mem)
             (println)
             (println "READY."))
-          (mem-append-program! mem (str line "\n")))
+          (mem/append-program! mem (str line "\n")))
         (catch Exception e
           (println (.getMessage e))
           (println)))

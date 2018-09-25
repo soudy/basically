@@ -7,46 +7,50 @@
    :functions functions ; Name and body of current functions
    :program ""          ; Current program
    :jump-line nil       ; Line number during GOSUB, GOTO and RUN
+   :loop-stack []       ; For loop stack
    :end? false})        ; End program
 
-(defn mem-init []
+(defn init []
   (atom initial-memory))
 
-(defn mem-reset! [mem]
+(defn clear! [mem]
   (reset! mem initial-memory))
 
-(defn mem-set-var! [mem name value]
+(defn set-var! [mem name value]
   (swap! mem assoc-in [:variables (lower-case name)] value))
 
-(defn mem-get-var [mem name]
+(defn get-var [mem name]
   (get (:variables @mem) (lower-case name) 0))
 
-(defn mem-set-func! [mem name body]
+(defn set-func! [mem name body]
   (swap! mem assoc-in [:functions (lower-case name)] body))
 
-(defn mem-get-func [mem name]
+(defn get-func [mem name]
   (get (:functions @mem) (lower-case name) nil))
 
-(defn mem-append-program! [mem line]
+(defn append-program! [mem line]
   (swap! mem update-in [:program] str line))
 
-(defn mem-get-program [mem]
+(defn get-program [mem]
   (:program @mem))
 
-(defn mem-set-jump! [mem line]
+(defn set-jump! [mem line]
   (swap! mem assoc :jump-line line))
 
-(defn mem-reset-jump! [mem]
+(defn clear-jump! [mem]
   (swap! mem assoc :jump-line nil))
 
-(defn mem-get-jump [mem]
+(defn get-jump [mem]
   (:jump-line @mem))
 
-(defn mem-end? [mem]
+(defn in-loop-stack? [mem ident]
+  )
+
+(defn end? [mem]
   (:end? @mem))
 
-(defn mem-set-end! [mem]
+(defn set-end! [mem]
   (swap! mem assoc :end? true))
 
-(defn mem-reset-end! [mem]
+(defn clear-end! [mem]
   (swap! mem assoc :end? false))
