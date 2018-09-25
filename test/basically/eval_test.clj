@@ -7,9 +7,10 @@
   (:refer-clojure :exclude [eval]))
 
 (deftest eval-print-statement
-  (let [stdout (-> "10 PRINT \"Hello, world \";
+  (let [stdout (-> "5 A=1
+10 PRINT \"Hello, world \";
 20 PRINT \"Goodbye, world\"
-30 PRINT 1;2,3
+30 PRINT A;2,3
 40 PRINT \"Once, \"; :PRINT \"twice.\"" lex parse eval with-out-str)]
     (is (= "Hello, world Goodbye, world\n 1  2          3\nOnce, twice.\n" stdout))))
 
@@ -18,7 +19,7 @@
 15 PRINT +9 *(-20)
 20 PRINT \"PEAR\" <> \"APPLE\" AND \"YELLOW\" <> \"BLUE\""
                    lex parse eval with-out-str)]
-    (is (= "30\n-180\n-1\n" stdout))))
+    (is (= " 30\n -180\n -1\n" stdout))))
 
 (deftest eval-assignment
   (let [mem (-> "10 LET A=20*20
@@ -75,3 +76,10 @@
 50 GOTO 60
 60 PRINT \"Sixty!\"" lex parse eval with-out-str)]
     (is (= "Sixty!\n" stdout))))
+
+(deftest eval-for-loop
+  (let [stdout (-> "10 FOR I=0 TO 10
+20 PRINT I
+30 NEXT
+40 PRINT \"END\"" lex parse eval with-out-str)]
+    (is (= " 0\n 1\n 2\n 3\n 4\n 5\n 6\n 7\n 8\n 9\n 10\nEND\n" stdout))))

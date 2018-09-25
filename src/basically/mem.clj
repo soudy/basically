@@ -43,8 +43,17 @@
 (defn get-jump [mem]
   (:jump-line @mem))
 
-(defn in-loop-stack? [mem ident]
-  )
+(defn in-loop-stack? [mem for-loop]
+  (some #{for-loop} (:loop-stack @mem)))
+
+(defn push-loop-stack! [mem for-loop]
+  (swap! mem update-in [:loop-stack] conj for-loop))
+
+(defn peek-loop-stack [mem]
+  (peek (:loop-stack @mem)))
+
+(defn pop-loop-stack! [mem]
+  (swap! mem assoc :loop-stack (pop (:loop-stack @mem))))
 
 (defn end? [mem]
   (:end? @mem))

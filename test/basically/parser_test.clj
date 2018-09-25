@@ -326,12 +326,8 @@
              {:type :for
               :label "10"
               :value (map->ForLoop {:counter "I"
-                                    :counter-value (map->Node {:type :integer
-                                                               :label nil
-                                                               :value "1"})
-                                    :to (map->Node {:type :integer
-                                                    :label nil
-                                                    :value "100"})
+                                    :counter-value 1
+                                    :to 100
                                     :step 1})})
 
             (map->Node

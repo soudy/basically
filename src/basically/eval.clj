@@ -45,29 +45,35 @@
 
     :else (error :syntax-error)))
 
-(defn- eval-print-arg [[{:keys [type value]} & [{next-type :type}] :as args] mem]
+(defn- eval-print-arg [[current & [next] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
-  (let [print-newline? (and (= (count args) 1) (not= type :nobreak))
-        value (case type
-                (:integer :float) (case next-type
-                                    :string (str value " ")
-                                    :nobreak (str value "  ")
-                                    value)
-                :string (if (or (node-number? next-type) (= next-type :expr))
-                          (str value " ")
-                          value)
-                :expr (eval-expr value mem)
-                :tab-margin (apply str (repeat 10 " "))
-                :nobreak "")]
+  (let [print-newline? (and (= (count args) 1) (not= current :nobreak))
+        value        (cond
+                       (number? current) (cond
+                                           (string? next) (str current " ")
+                                           (= next :nobreak) (str current "  ")
+                                           :else current)
+                       (string? current) (if (number? next)
+                                           (str current " ")
+                                           current)
+                       (= current :tab-margin) (apply str (repeat 10 " "))
+                       (= current :nobreak) "")]
     (str value (when print-newline? "\n"))))
 
 (defn- eval-print-args
   "Evaluate the argument given to the print statement, forming a single string
   to print."
-  ([[{:keys [type]} & rest :as args] mem]
-   ;; If the arguments start with a float or integer, indent by a space
-   (let [begin-message (if (node-number? type) " " "")]
-     (eval-print-args args mem begin-message)))
+  ([args mem]
+   ;; First evaluate all arguments, then go over the evaluated arguments and
+   ;; format them correctly
+   (let [args (map (fn [{:keys [type] :as arg}]
+                     (case type
+                       :tab-margin :tab-margin
+                       :nobreak :nobreak
+                       (eval-expr arg mem))) args)
+         ;; If the arguments start with a float or integer, indent by a space
+         message (if (number? (first args)) " " "")]
+     (eval-print-args args mem message)))
   ([args mem message]
    (if (empty? args)
      message
@@ -108,12 +114,12 @@
 
 (declare eval-node)
 
-(defn- eval-if [ast {:keys [condition body]} mem]
+(defn- eval-if [{:keys [condition body]} mem]
   (when (= (eval-expr condition mem) basic-true)
     (if (and (instance? Node body) (= (:type body) :integer))
       ;; A single integer node as if body acts as goto
       (mem/set-jump! mem (:value body))
-      (eval-node ast body mem))))
+      (eval-node body mem))))
 
 (declare eval)
 
@@ -123,40 +129,55 @@
       parse
       (eval mem)))
 
-(defn- eval-gosub [ast {:keys [value]} mem]
+(defn- eval-gosub [{:keys [value]} mem]
   (mem/set-jump! mem value))
 
-(defn- eval-for [ast for-loop mem]
-  )
+
+(defn- eval-for [{:keys [counter counter-value] :as for-loop} label mem]
+  (let [label (if (nil? label) :direct label)
+        for-loop (assoc for-loop :label label)]
+    (when-not (mem/in-loop-stack? mem for-loop)
+      (mem/push-loop-stack! mem for-loop)
+      (mem/set-var! mem counter counter-value))))
+
+(defn- eval-next [value mem]
+  (if-let [{:keys [counter to step label]} (mem/peek-loop-stack mem)]
+    (do
+      ;; Increment loop counter
+      (mem/set-var! mem counter (+ (mem/get-var mem counter) step))
+      (if (> (mem/get-var mem counter) to)
+        (mem/pop-loop-stack! mem)
+        (mem/set-jump! mem label)))
+    (error :next-without-for)))
 
 (defn- eval-end [mem]
   (mem/clear! mem)
   (mem/set-end! mem))
 
-(defn- eval-node [ast {:keys [type value label] :as current} mem]
+(defn- eval-node [{:keys [type value label] :as node} mem]
   (case type
-    :print (eval-print current mem)
+    :print (eval-print node mem)
     :let (eval-let value mem)
-    :expr (eval-top-level-expr current mem)
+    :expr (eval-top-level-expr node mem)
     :input (eval-input value mem)
-    :if (eval-if ast value mem)
+    :if (eval-if value mem)
     :new (mem/clear! mem)
     :run (run-program (mem/get-program mem) mem)
     :goto (mem/set-jump! mem (:value value))
-    :gosub (eval-gosub ast value mem)
-    :for (eval-for ast value mem)
+    :gosub (eval-gosub value mem)
+    :for (eval-for value label mem)
+    :next (eval-next value mem)
     :noop nil
     :end (eval-end mem)
     (error :syntax-error label)))
 
-(defn- eval-node-list [ast {:keys [nodes]} mem]
-  (doseq [node nodes] (eval-node ast node mem)))
-
 (defn- find-line-index [ast line]
-  (let [index (keep-indexed #(when (= line (:label %2)) %1) ast)]
-    (if-not (seq index)
-      nil
-      (nth index 0))))
+  (if (= line :direct)
+    0 ; One-line for loop in direct mode
+    (let [index (keep-indexed #(when (= line (:label %2)) %1) ast)]
+      (if-not (seq index)
+        nil
+        (nth index 0)))))
 
 (defn eval
   "Evaluate an AST."
@@ -183,6 +204,6 @@
        mem
        (let [current-node (get ast current)]
          (if (instance? NodeList current-node)
-           (eval-node-list ast current-node mem)
-           (eval-node ast current-node mem))
+           (eval (:nodes current-node) mem)
+           (eval-node current-node mem))
          (recur ast mem (inc current)))))))

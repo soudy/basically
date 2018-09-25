@@ -269,16 +269,22 @@
   [tokens label]
   (let [[{counter :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:=])
-        [counter-value tokens] (expect-and-parse tokens [:integer :float])
+        [{counter-value :value} tokens] (expect tokens [:integer :float])
         [_ tokens] (expect tokens [:to])
-        [to tokens] (expect-and-parse tokens [:integer :float])]
+        [{to :value} tokens] (expect tokens [:integer :float])
+
+        ;; Convert counter and to to int
+        counter-value-int (read-string counter-value)
+        to-int (read-string to)]
     (if (or (empty? tokens) (end-delimiter? tokens))
-      [(new-node :for label (->ForLoop counter counter-value to default-for-step))
+      [(new-node :for label (->ForLoop counter counter-value-int to-int default-for-step))
        tokens]
       (let [[_ tokens] (expect tokens [:step])
-            [step tokens] (expect-and-parse tokens [:integer :float])]
+            [{step :value} tokens] (expect tokens [:integer :float])
+            step-int (read-string step)]
         (expect-end tokens)
-        [(new-node :for label (->ForLoop counter counter-value to step)) tokens]))))
+        [(new-node :for label (->ForLoop counter counter-value-int to-int step-int))
+         tokens]))))
 
 (defn- parse-next
   "Parse a next statement.

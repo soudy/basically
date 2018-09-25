@@ -4,5 +4,6 @@
   (let [message (case type
                   :type-mismatch "?TYPE MISMATCH ERROR"
                   :syntax-error "?SYNTAX ERROR"
-                  :undefd-statement "?UNDEF'D STATEMENT ERROR")]
+                  :undefd-statement "?UNDEF'D STATEMENT ERROR"
+                  :next-without-for "?NEXT WITHOUT FOR ERROR")]
     (throw (Exception. (str message (when label (str " IN " label)))))))
