@@ -68,8 +68,7 @@
    ;; format them correctly
    (let [args (map (fn [{:keys [type] :as arg}]
                      (case type
-                       :tab-margin :tab-margin
-                       :nobreak :nobreak
+                       (:tab-margin :nobreak) type
                        (eval-expr arg mem))) args)
          ;; If the arguments start with a float or integer, indent by a space
          message (if (number? (first args)) " " "")]
