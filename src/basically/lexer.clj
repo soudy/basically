@@ -51,7 +51,6 @@
                \( :lparen
                \) :rparen
                \, :comma
-               \^ :exp
                \? :print}] ; ? is a shortcut for print
   (defn- symbol? [c] (some (partial = c) (keys symbols)))
   (defn- get-symbol-keyword [c] (get symbols c :error)))
