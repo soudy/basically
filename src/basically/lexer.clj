@@ -62,13 +62,12 @@
   true, return a token with the provided token type."
   ([program condition token-type]
    (scan-while program condition token-type ""))
-  ([program condition token-type value]
+  ([[current :as program] condition token-type value]
    (if (empty? program)
      [(->Token token-type value) program]
-     (let [current (top program)]
-       (if-not (condition current)
-         [(->Token token-type value) program]
-         (recur (eat program) condition token-type (str value current)))))))
+     (if-not (condition current)
+       [(->Token token-type value) program]
+       (recur (eat program) condition token-type (str value current))))))
 
 (defn- scan-number
   "Scan a number. A number can be an integer or a float, which is decided when
