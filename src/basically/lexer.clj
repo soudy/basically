@@ -96,8 +96,7 @@
   a unary operator. Only `+' and `-' can be unary."
   [operator {prev-type :type}]
   (and (or (= operator \+) (= operator \-))
-       (not (some (partial = prev-type)
-                  [:ident :rparen :string :float :integer]))))
+       (not-any? (partial = prev-type) [:ident :rparen :string :float :integer])))
 
 (defn- scan-operator [[current :as program] prev-token]
   (if-let [operator (some #{(top program 2)} ["<>" "<=" ">="])]
