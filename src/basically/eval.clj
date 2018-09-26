@@ -48,16 +48,16 @@
 (defn- eval-print-arg [[current & [next] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
   (let [print-newline? (and (= (count args) 1) (not= current :nobreak))
-        value        (cond
-                       (number? current) (cond
-                                           (string? next) (str current " ")
-                                           (= next :nobreak) (str current "  ")
-                                           :else current)
-                       (string? current) (if (number? next)
-                                           (str current " ")
-                                           current)
-                       (= current :tab-margin) (apply str (repeat 10 " "))
-                       (= current :nobreak) "")]
+        value (cond
+                (number? current) (cond
+                                    (string? next) (str current " ")
+                                    (= next :nobreak) (str current "  ")
+                                    :else current)
+                (string? current) (if (number? next)
+                                    (str current " ")
+                                    current)
+                (= current :tab-margin) (apply str (repeat 10 " "))
+                (= current :nobreak) "")]
     (str value (when print-newline? "\n"))))
 
 (defn- eval-print-args
