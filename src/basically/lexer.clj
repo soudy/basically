@@ -1,7 +1,7 @@
 (ns basically.lexer
-  (:require [basically.errors :refer [error]])
-  (:refer-clojure :exclude [integer? symbol? string?])
-  (:use [clojure.string :only [lower-case join]]))
+  (:require [basically.errors :refer [error]]
+            [clojure.string :refer [lower-case join]])
+  (:refer-clojure :exclude [integer? symbol? string?]))
 
 (defrecord Token [type value])
 

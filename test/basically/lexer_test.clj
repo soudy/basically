@@ -1,7 +1,6 @@
 (ns basically.lexer-test
   (:require [clojure.test :refer :all]
-            [basically.lexer :refer :all])
-  (:import (basically.lexer Token)))
+            [basically.lexer :refer :all]))
 
 (deftest lex-integers
   (is (= [(map->Token {:type :integer :value "10"})
