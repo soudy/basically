@@ -140,5 +140,5 @@
      (let [[token program] (scan-token program (last tokens))]
        (if-not (nil? token)
          (recur program (conj tokens token))
-         ;; If we get no token, we're skipping whitespace or comment
+         ;; If we get no token, we're skipping whitespace
          (recur program tokens))))))
