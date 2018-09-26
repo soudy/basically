@@ -99,11 +99,10 @@
 (defn- scan-operator [[current :as program] prev-token]
   (if-let [operator (some #{(top program 2)} ["<>" "<=" ">="])]
     [(->Token (keyword operator) operator) (eat program 2)]
-    (if (unary? current prev-token)
-      (let [operator (str "unary" current)]
-        [(->Token (keyword operator) (str current)) (eat program)])
-      (let [operator (str (top program))]
-        [(->Token (keyword operator) operator) (eat program)]))))
+    (let [operator (if (unary? current prev-token)
+                     (str "unary" current)
+                     (str current))]
+      [(->Token (keyword operator) (str current)) (eat program)])))
 
 (defn- scan-string
   ([program]
