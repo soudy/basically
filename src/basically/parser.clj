@@ -1,7 +1,7 @@
 (ns basically.parser
-  (:require [basically.errors :refer [error]]))
+  (:require [basically.errors :refer [error]]
+            [clojure.core.reducers :as r]))
 
-(defrecord NodeList [label nodes])
 (defrecord Node [type label value])
 
 (defrecord Expr [operator lhs rhs])
@@ -11,8 +11,6 @@
 (defrecord DefineFunc [name arg body])
 (defrecord LetStmt [name value])
 (defrecord ForLoop [counter counter-value to step])
-
-(def ^:private default-for-step 1)
 
 (defn- function-call? [[{current :type} {next :type}]]
   (and (= current :ident) (= next :lparen)))
@@ -276,6 +274,8 @@
     (expect-end tokens)
     [(new-node :let label (->LetStmt name value)) tokens]))
 
+(def ^:private default-for-step 1)
+
 (defn- parse-for
   "Parse a for statement.
 
@@ -360,9 +360,7 @@
      (parse-line rest [] value)))
   ([[{:keys [type]} & rest :as tokens] nodes label]
    (if (or (empty? tokens) (= type :newline))
-     (if (= (count nodes) 1)
-       [(nth nodes 0) rest]
-       [(->NodeList label nodes) rest])
+     [nodes rest]
      (let [[node tokens] (parse-node tokens label)]
        (recur tokens (conj nodes node) label)))))
 
@@ -371,6 +369,6 @@
    (parse tokens []))
   ([tokens ast]
    (if (empty? tokens)
-     ast
+     (into [] (r/flatten ast))
      (let [[node tokens] (parse-line tokens)]
        (recur tokens (conj ast node))))))

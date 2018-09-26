@@ -5,15 +5,17 @@
             [basically.mem :as mem]
             [basically.errors :refer [error]]
             [basically.constants :refer [basic-true basic-false]])
-  (:import [basically.parser Node NodeList Expr FuncCall])
+  (:import [basically.parser Node Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
 (declare eval-expr)
 
+(def ^:private func-not-found-value 0)
+
 (defn- eval-func-call [{:keys [name args]} mem]
   (if-let [func (mem/get-func mem name)]
     (apply func (map #(eval-expr % mem) args))
-    0))
+    func-not-found-value))
 
 (defn- eval-expr [expr mem]
   (cond
@@ -204,7 +206,5 @@
      (if (= (count ast) current)
        mem
        (let [current-node (get ast current)]
-         (if (instance? NodeList current-node)
-           (eval (:nodes current-node) mem)
-           (eval-node current-node mem))
+         (eval-node current-node mem)
          (recur ast mem (inc current)))))))

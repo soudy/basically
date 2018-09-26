@@ -71,21 +71,19 @@
 
 (deftest parse-multiple-statements
   (let [ast (-> "10 PRINT \"Multiple \"; : PRINT \"Statements on a line\"" lex parse)]
-    (is (= [(map->NodeList
-             {:label "10"
-              :nodes [(map->Node {:type :print
-                                  :label "10"
-                                  :value [(map->Node {:type :string
-                                                      :label nil
-                                                      :value "Multiple "})
-                                          (map->Node {:type :nobreak
-                                                      :label nil
-                                                      :value nil})]})
-                      (map->Node {:type :print
-                                  :label "10" :value
-                                  [(map->Node {:type :string
-                                               :label nil
-                                               :value "Statements on a line"})]})]})]
+    (is (= [(map->Node {:type :print
+                        :label "10"
+                        :value [(map->Node {:type :string
+                                            :label nil
+                                            :value "Multiple "})
+                                (map->Node {:type :nobreak
+                                            :label nil
+                                            :value nil})]})
+            (map->Node {:type :print
+                        :label "10"
+                        :value [(map->Node {:type :string
+                                            :label nil
+                                            :value "Statements on a line"})]})]
            ast))))
 
 (deftest parse-expressions
