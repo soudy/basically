@@ -131,7 +131,8 @@
 
 (defn lex
   "Lex converts a string into a list of tokens."
-  ([program] (lex program []))
+  ([program]
+   (lex program []))
   ([program tokens]
    (if (empty? program)
      tokens
