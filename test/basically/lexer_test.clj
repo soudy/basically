@@ -3,19 +3,19 @@
             [basically.lexer :refer :all]))
 
 (deftest lex-integers
-  (is (= [(map->Token {:type :integer :value "10"})
-          (map->Token {:type :integer :value "2"})
-          (map->Token {:type :integer :value "0"})
-          (map->Token {:type :integer :value "500"})
-          (map->Token {:type :integer :value "999999999"})]
+  (is (= [(map->Token {:type :integer :value 10})
+          (map->Token {:type :integer :value 2})
+          (map->Token {:type :integer :value 0})
+          (map->Token {:type :integer :value 500})
+          (map->Token {:type :integer :value 999999999})]
          (lex "10 2 0 500 999999999"))))
 
 (deftest lex-floats
-  (is (= [(map->Token {:type :float :value "0.0"})
-          (map->Token {:type :float :value "1.234"})
-          (map->Token {:type :float :value "1."})
-          (map->Token {:type :float :value ".5"})]
-         (lex "0.0 1.234 1. .5"))))
+  (is (= [(map->Token {:type :float :value 0.0})
+          (map->Token {:type :float :value 1.234})
+          (map->Token {:type :float :value 1.0})
+          (map->Token {:type :float :value 0.5})]
+         (lex "0.0 1.234 1. 0.5"))))
 
 (deftest lex-comment
   (is (= [(map->Token {:type :comment :value " This does something important!"})
@@ -68,12 +68,12 @@
 
 (deftest lex-operators
   (is (= [(map->Token {:type :unary- :value "-"})
-          (map->Token {:type :integer :value "2"})
+          (map->Token {:type :integer :value 2})
           (map->Token {:type :- :value "-"})
-          (map->Token {:type :integer :value "3"})
+          (map->Token {:type :integer :value 3})
           (map->Token {:type :+ :value "+"})
           (map->Token {:type :unary+ :value "+"})
-          (map->Token {:type :integer :value "5"})
+          (map->Token {:type :integer :value 5})
           (map->Token {:type :* :value "*"})
           (map->Token {:type :/ :value "/"})
           (map->Token {:type :< :value "<"})
@@ -112,54 +112,54 @@
 130   F = F*I
 140 NEXT
 150 RETURN"]
-    (is (= [(map->Token {:type :integer :value "10"})
+    (is (= [(map->Token {:type :integer :value 10})
             (map->Token {:type :comment :value " FACTORIAL"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "20"})
+            (map->Token {:type :integer :value 20})
             (map->Token {:type :comment :value " COMMODORE BASIC 2.0"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "30"})
+            (map->Token {:type :integer :value 30})
             (map->Token {:type :ident :value "N"})
             (map->Token {:type := :value "="})
-            (map->Token {:type :integer :value "10"})
+            (map->Token {:type :integer :value 10})
             (map->Token {:type :colon :value \:})
             (map->Token {:type :gosub :value "GOSUB"})
-            (map->Token {:type :integer :value "100"})
+            (map->Token {:type :integer :value 100})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "40"})
+            (map->Token {:type :integer :value 40})
             (map->Token {:type :print :value "PRINT"})
             (map->Token {:type :ident :value "N"})
             (map->Token {:type :string :value "! ="})
             (map->Token {:type :ident :value "F"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "50"})
+            (map->Token {:type :integer :value 50})
             (map->Token {:type :end :value "END"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "100"})
+            (map->Token {:type :integer :value 100})
             (map->Token {:type :comment :value " FACTORIAL CALC USING SIMPLE LOOP"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "110"})
+            (map->Token {:type :integer :value 110})
             (map->Token {:type :ident :value "F"})
             (map->Token {:type := :value "="})
-            (map->Token {:type :integer :value "1"})
+            (map->Token {:type :integer :value 1})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "120"})
+            (map->Token {:type :integer :value 120})
             (map->Token {:type :for :value "FOR"})
             (map->Token {:type :ident :value "I"})
             (map->Token {:type := :value "="})
-            (map->Token {:type :integer :value "1"})
+            (map->Token {:type :integer :value 1})
             (map->Token {:type :to :value "TO"})
             (map->Token {:type :ident :value "N"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "130"})
+            (map->Token {:type :integer :value 130})
             (map->Token {:type :ident :value "F"})
             (map->Token {:type := :value "="})
             (map->Token {:type :ident :value "F"})
@@ -167,10 +167,10 @@
             (map->Token {:type :ident :value "I"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "140"})
+            (map->Token {:type :integer :value 140})
             (map->Token {:type :next :value "NEXT"})
             (map->Token {:type :newline :value \newline})
 
-            (map->Token {:type :integer :value "150"})
+            (map->Token {:type :integer :value 150})
             (map->Token {:type :return :value "RETURN"})]
            (lex program)))))

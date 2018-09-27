@@ -25,8 +25,7 @@
       (case type
         :expr (eval-expr value mem) ; Expression wrapped in a node
         :ident (mem/get-var mem value)
-        (:integer :float) (read-string value)
-        :string value))
+        (:integer :float :string) value))
 
     ;; Function call
     (instance? FuncCall expr)

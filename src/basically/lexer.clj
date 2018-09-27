@@ -80,8 +80,8 @@
       ;; fractional part and join them together to get the float value.
       (let [[decimals program] (scan-while (eat program) integer? :integer)
             float-value (str (:value token) "." (:value decimals))]
-        [(->Token :float float-value) program])
-      [token program])))
+        [(->Token :float (read-string float-value)) program])
+      [(assoc token :value (read-string (:value token))) program])))
 
 (defn- scan-ident [program]
   (let [[token program] (scan-while program ident? :ident)]
@@ -119,7 +119,7 @@
   (cond
     (whitespace? current) [nil (eat program)]
     (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
-    (or (integer? current) (= current \.)) (scan-number program)
+    (integer? current) (scan-number program)
     (ident? current) (scan-ident program)
     (operator? current) (scan-operator program prev-token)
     (string? current) (scan-string program)
