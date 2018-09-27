@@ -95,9 +95,9 @@
   (let [stdout (-> "
 10 REM FACTORIAL CALC USING SIMPLE LOOP
 20 N=10 : F=1
-40 FOR I=1 TO N
-50   F = F*I
-60 NEXT
-70 PRINT N\"! =\"F
+30 FOR I=1 TO N
+40   F = F*I
+50 NEXT
+60 PRINT N\"! =\"F
 " lex parse eval with-out-str)]
     (is (= stdout " 10 ! = 3628800\n"))))
