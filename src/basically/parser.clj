@@ -124,7 +124,7 @@
       [(new-node :run label jump) tokens])))
 
 ;; Operators with their precedence and associativity
-(let [operators {:=  {:prec 0 :assoc :right}
+(let [operators {:= {:prec 0 :assoc :right}
                  :or {:prec 1 :assoc :right}
                  :and {:prec 2 :assoc :right}
                  :< {:prec 3 :assoc :right}
