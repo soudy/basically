@@ -280,13 +280,13 @@
   "Parse a for statement.
 
   Syntax:
-    FOR <ident>=<number> TO <number> [STEP <number>]"
+    FOR <ident>=<number> TO <expr> [STEP <number>]"
   [tokens label]
   (let [[{counter :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:=])
         [{counter-value :value} tokens] (expect tokens [:integer :float])
         [_ tokens] (expect tokens [:to])
-        [{to :value} tokens] (expect tokens [:integer :float])]
+        [to tokens] (parse-expr tokens)]
     (if (or (empty? tokens) (end-delimiter? tokens))
       [(new-node :for label (->ForLoop counter counter-value to default-for-step))
        tokens]

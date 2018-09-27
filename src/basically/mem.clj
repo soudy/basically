@@ -7,7 +7,6 @@
    :functions functions ; Name and body of current functions
    :program ""          ; Current program
    :jump-line nil       ; Line number during GOSUB, GOTO, RUN and FOR
-   :return-stack []     ; Position to return to on RETURN
    :loop-stack []       ; For loop stack
    :end? false})        ; End program
 

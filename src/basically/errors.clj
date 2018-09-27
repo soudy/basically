@@ -5,5 +5,6 @@
                   :type-mismatch "?TYPE MISMATCH ERROR"
                   :syntax-error "?SYNTAX ERROR"
                   :undefd-statement "?UNDEF'D STATEMENT ERROR"
-                  :next-without-for "?NEXT WITHOUT FOR ERROR")]
+                  :next-without-for "?NEXT WITHOUT FOR ERROR"
+                  :return-without-gosub "?RETURN WITHOUT GOSUB ERROR")]
     (throw (Exception. (str message (when label (str " IN " label)))))))

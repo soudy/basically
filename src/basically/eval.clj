@@ -132,12 +132,13 @@
     (mem/set-jump! mem start-at))
   (run-program (mem/get-program mem) mem))
 
-(defn- eval-gosub [{:keys [value]} mem]
+(defn- eval-gosub [{:keys [value]} label mem]
   (mem/set-jump! mem value))
 
-(defn- eval-for [{:keys [counter counter-value] :as for-loop} label mem]
+(defn- eval-for [{:keys [counter to counter-value] :as for-loop} label mem]
   (let [label (if (nil? label) :direct label)
-        for-loop (assoc for-loop :label label)]
+        to-value (eval-expr to mem)
+        for-loop (assoc for-loop :label label :to to-value)]
     (when-not (mem/in-loop-stack? mem for-loop)
       (mem/push-loop-stack! mem for-loop)
       (mem/set-var! mem counter counter-value))))
@@ -166,7 +167,7 @@
     :new (mem/clear! mem)
     :run (eval-run value mem)
     :goto (mem/set-jump! mem (:value value))
-    :gosub (eval-gosub value mem)
+    :gosub (eval-gosub value label mem)
     :for (eval-for value label mem)
     :next (eval-next value mem)
     :noop nil
