@@ -108,7 +108,7 @@
         input (get-user-input prompt)]
     (mem/set-var! mem variable-name input)
     (when (seq rest)
-      (eval-input (assoc input-stmt :message "?" :variables rest) mem))))
+      (recur (assoc input-stmt :message "?" :variables rest) mem))))
 
 (declare eval-node)
 

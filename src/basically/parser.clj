@@ -62,8 +62,8 @@
      ;; Print statements specifics. Semicolons mean no break and commas mean
      ;; a tabulator margin.
      (case type
-       :semicolon (parse-print rest node (conj values (new-node :nobreak)))
-       :comma (parse-print rest node (conj values (new-node :tab-margin)))
+       :semicolon (recur rest node (conj values (new-node :nobreak)))
+       :comma (recur rest node (conj values (new-node :tab-margin)))
        (let [[value tokens] (parse-node tokens)]
          (recur tokens node (conj values value)))))))
 
