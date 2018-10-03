@@ -44,17 +44,25 @@
 
     :else (error :syntax-error)))
 
+(defn- whole-number? [n]
+  (not (> n (int n))))
+
 (defn- eval-print-arg [[current & [next] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
   (let [print-newline? (and (= (count args) 1) (not= current :nobreak))
         value (cond
-                (number? current) (cond
-                                    (string? next) (str current " ")
-                                    (= next :nobreak) (str current "  ")
-                                    :else current)
-                (string? current) (if (number? next)
-                                    (str current " ")
-                                    current)
+                (number? current)
+                (let [number (if (whole-number? current) (int current) current)]
+                  (cond
+                    (string? next) (str number " ")
+                    (= next :nobreak) (str number "  ")
+                    :else number))
+
+                (string? current)
+                (if (number? next)
+                  (str current " ")
+                  current)
+
                 (= current :tab-margin) (apply str (repeat 10 " "))
                 (= current :nobreak) "")]
     (str value (when print-newline? "\n"))))

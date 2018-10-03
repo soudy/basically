@@ -84,6 +84,11 @@
 40 PRINT \"END\"" lex parse eval with-out-str)]
     (is (= " 0\n 1\n 2\n 3\n 4\n 5\n 6\n 7\n 8\n 9\n 10\nEND\n" stdout))))
 
+(deftest eval-for-loop-step
+  (let [stdout (-> "10 FOR I=5 TO 10 STEP 0.5 : PRINT I : NEXT"
+                   lex parse eval with-out-str)]
+    (is (= " 5\n 5.5\n 6\n 6.5\n 7\n 7.5\n 8\n 8.5\n 9\n 9.5\n 10\n" stdout))))
+
 (deftest eval-run-statement
   (let [mem (mem/init)
         _ (mem/append-program! mem "10 PRINT \"Don't run me!\"\n
