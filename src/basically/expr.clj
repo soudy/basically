@@ -51,9 +51,8 @@
                       ;; Compare the ASCII value of the first character
                       ;; when comparing strings
                       (and (string? lhs) (string? rhs))
-                      (if (apply-op operator
-                                    (int (first lhs))
-                                    (int (first rhs)))
-                        basic-true basic-false)
+                      (if (apply-op operator (int (first lhs)) (int (first rhs)))
+                        basic-true
+                        basic-false)
 
                       :else (error :type-mismatch))))

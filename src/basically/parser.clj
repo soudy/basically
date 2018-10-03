@@ -13,7 +13,8 @@
 (defrecord ForLoop [counter counter-value to step])
 
 (defn- function-call? [[{current :type} {next :type}]]
-  (and (= current :ident) (= next :lparen)))
+  (or (= current :fn)
+      (and (= current :ident) (= next :lparen))))
 
 (defn- end-delimiter? [[{:keys [type]}]]
   (or (= type :newline) (= type :colon)))
@@ -190,7 +191,7 @@
           [expr tokens] (parse-expr-begin rest prec)]
       [(->Expr type nil expr) tokens])
 
-    (or (function-call? tokens) (= type :fn))
+    (function-call? tokens)
     (parse-function-call tokens)
 
     (= type :lparen)
