@@ -100,4 +100,4 @@
 50 NEXT
 60 PRINT N\"! =\"F
 " lex parse eval with-out-str)]
-    (is (= stdout " 10 ! = 3628800\n"))))
+    (is (= " 10 ! = 3628800\n" stdout))))

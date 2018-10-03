@@ -157,6 +157,10 @@
   (mem/clear! mem)
   (mem/set-end! mem))
 
+(defn- clear-screen []
+  (print (str (char 27) "[2J"))
+  (print (str (char 27) "[;H")))
+
 (defn- eval-node [{:keys [type value label] :as node} mem]
   (case type
     :print (eval-print node mem)
@@ -172,6 +176,7 @@
     :next (eval-next value mem)
     :noop nil
     :end (eval-end mem)
+    :clr (clear-screen)
     (error :syntax-error label)))
 
 (defn- find-line-index [ast line]
