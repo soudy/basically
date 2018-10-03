@@ -45,7 +45,7 @@
     :else (error :syntax-error)))
 
 (defn- whole-number? [n]
-  (not (> n (int n))))
+  (== n (int n)))
 
 (defn- eval-print-arg [[current & [next] :as args] mem]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
