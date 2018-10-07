@@ -235,8 +235,8 @@
 
 (deftest parse-input-statement
   (let [ast (-> "10 INPUT \"How many? \"; A%
-20 INPUT A, B, C
-30 INPUT \"Two things please \"; A$, B$" lex parse)]
+30 INPUT \"Two things please \"; A$, B$
+20 INPUT A, B, C" lex parse)]
     (is (= [(map->Node {:type :input
                         :label 10
                         :value (map->InputStmt {:message "How many? "

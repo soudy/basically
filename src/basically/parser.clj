@@ -1,6 +1,5 @@
 (ns basically.parser
-  (:require [basically.errors :refer [error]]
-            [clojure.core.reducers :as r]))
+  (:require [basically.errors :refer [error]]))
 
 (defrecord Node [type label value])
 
@@ -365,6 +364,6 @@
    (parse tokens []))
   ([tokens ast]
    (if (empty? tokens)
-     (into [] (r/flatten ast))
+     (vec (sort-by :label ast))
      (let [[node tokens] (parse-line tokens)]
-       (recur tokens (conj ast node))))))
+       (recur tokens (concat ast node))))))
