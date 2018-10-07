@@ -349,7 +349,7 @@
   (not= type :integer))
 
 (defn- parse-line
-  ([[{:keys [type value]} & rest :as tokens]]
+  ([[{:keys [value]} & rest :as tokens]]
    (if (direct-statement? tokens)
      (parse-line tokens [] nil)
      (parse-line rest [] value)))
