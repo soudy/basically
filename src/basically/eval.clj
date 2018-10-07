@@ -12,10 +12,20 @@
 
 (def ^:private func-not-found-value 0)
 
-(defn- eval-func-call [{:keys [name args]} mem]
-  (if-let [func (mem/get-func mem name)]
-    (apply func (map #(eval-expr % mem) args))
-    func-not-found-value))
+(defn- eval-func-call [{:keys [name args user-function?]} mem]
+  (if user-function?
+    (do
+      (when-not (= (count args) 1)
+        (error :syntax-error))
+      (if-let [{:keys [arg body]} (mem/get-func mem name)]
+        (let [function-mem (atom @mem)]
+          (mem/set-var! function-mem arg (eval-expr (nth args 0) mem))
+          (eval-expr body function-mem))
+        (error :undefd-function)))
+    (let [func (mem/get-func mem name)]
+      (if (fn? func)
+        (apply func (map #(eval-expr % mem) args))
+        func-not-found-value))))
 
 (defn- eval-expr [expr mem]
   (cond
@@ -177,6 +187,9 @@
   (print (str (char 27) "[2J"))
   (print (str (char 27) "[;H")))
 
+(defn- eval-def [def-node mem]
+  (mem/define-function! mem def-node))
+
 (defn- eval-node [{:keys [type value label] :as node} mem]
   (case type
     :print (eval-print node mem)
@@ -193,6 +206,7 @@
     :noop nil
     :end (eval-end mem)
     :clr (clear-screen)
+    :def (eval-def value mem)
     (error :syntax-error label)))
 
 (defn- find-line-index [ast line]

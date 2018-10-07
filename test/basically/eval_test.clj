@@ -106,3 +106,9 @@
 60 PRINT N\"! =\"F
 " lex parse eval with-out-str)]
     (is (= " 10 ! = 3628800\n" stdout))))
+
+(deftest eval-def-statement
+  (let [stdout (-> "10 DEF FN SQUARE(X) = X * X
+20 PRINT FN SQUARE(10)
+30 PRINT SQUARE(10)" lex parse eval with-out-str)]
+    (is (= " 100\n 0\n" stdout))))
