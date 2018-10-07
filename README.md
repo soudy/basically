@@ -16,6 +16,24 @@ Build and run standalone JAR
     $ lein uberjar
     $ java -jar ./target/uberjar/basically-VERSION-standalone.jar
 
+## Example
+
+Calculating the factorial of 10.
+
+```BASIC
+10 REM FACTORIAL CALC USING SIMPLE LOOP
+20 N=10 : F=1
+30 FOR I=1 TO N
+40   F = F*I
+50 NEXT
+60 PRINT N"! ="F
+```
+
+Executing program:
+
+    $ basically examples/fibonacci.b
+     10 ! = 3628800
+
 ## License
 
 Copyright © 2018 Steven Oud

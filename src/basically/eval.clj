@@ -135,6 +135,14 @@
       parse
       (eval mem)))
 
+(defn run-file [filename]
+  (try
+    (let [program (slurp filename)]
+      (run-program program (mem/init)))
+    (catch Exception e
+      (println (str "Failed reading file: " (.getMessage e)))
+      (System/exit 1))))
+
 (defn- eval-run [start-at mem]
   (when-not (nil? start-at)
     (mem/set-jump! mem start-at))
