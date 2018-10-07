@@ -9,7 +9,11 @@
             [clojure.tools.cli :refer [parse-opts]]))
 
 (defmacro proj-version []
-  (some->> (slurp "project.clj") edn/read-string (drop 1) (take 2) (str/join " ")))
+  (some->> (slurp "project.clj")
+           edn/read-string
+           (drop 1)
+           (take 2)
+           (str/join " ")))
 
 (def cli-options
   [["-v" "--version" "Print basically version"]
