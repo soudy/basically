@@ -101,7 +101,7 @@
     (print message)))
 
 (defn- eval-let [{name :name expr-node :value} mem]
-  (mem/set-var! mem name (eval-expr (:value expr-node) mem)))
+  (mem/set-var! mem name (eval-expr expr-node mem)))
 
 (defn- assignment-expr? [expr]
   (and (instance? Expr expr)) (= (:operator expr) :=))
@@ -117,7 +117,7 @@
   (print prompt)
   (flush)
   (let [input (read-line)]
-    (if (re-matches (re-pattern "(\\d+(\\.\\d+)?)") input)
+    (if (re-matches #"(\d+(\.\d+)?)" input)
       (read-string input)
       input)))
 
