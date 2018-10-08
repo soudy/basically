@@ -255,7 +255,7 @@
   (let [[_ tokens] (expect tokens [:fn])
         [{name :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:lparen])
-        [{arg :value} tokens] (expect-and-parse tokens [:ident])
+        [{arg :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:rparen])
         [_ tokens] (expect tokens [:=])
         [body tokens] (parse-expr tokens)]
