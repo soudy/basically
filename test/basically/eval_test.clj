@@ -112,3 +112,7 @@
 20 PRINT FN SQUARE(10)
 30 PRINT SQUARE(10)" lex parse eval with-out-str)]
     (is (= " 100\n 0\n" stdout))))
+
+(deftest eval-error-message-with-label
+  (is (thrown-with-msg? Exception #"\?UNDEF'D STATEMENT ERROR IN 10"
+                        (-> "10 GOTO 40" lex parse eval with-out-str))))

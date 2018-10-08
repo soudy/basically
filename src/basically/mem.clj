@@ -2,8 +2,9 @@
   (:require [basically.funcs :refer [functions]])
   (:use [clojure.string :only [lower-case]]))
 
-(def initial-memory
-  {:variables {}        ; Name and value of current variables
+(def ^:private initial-memory
+  {:current-label nil   ; Current label number
+   :variables {}        ; Name and value of current variables
    :functions functions ; Name and body of current functions
    :program ""          ; Current program
    :jump-line nil       ; Line number during GOSUB, GOTO, RUN and FOR
@@ -15,6 +16,9 @@
 
 (defn clear! [mem]
   (reset! mem initial-memory))
+
+(defn set-current-label! [mem label]
+  (swap! mem assoc :current-label label))
 
 (defn set-var! [mem name value]
   (swap! mem assoc-in [:variables (lower-case name)] value))

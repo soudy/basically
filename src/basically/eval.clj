@@ -3,7 +3,7 @@
             [basically.lexer :refer [lex]]
             [basically.parser :refer [parse]]
             [basically.mem :as mem]
-            [basically.errors :refer [error]]
+            [basically.errors :refer [error-with-mem]]
             [basically.constants :refer [basic-true basic-false]])
   (:import [basically.parser Node Expr FuncCall])
   (:refer-clojure :exclude [eval]))
@@ -16,12 +16,12 @@
   (if user-function?
     (do
       (when-not (= (count args) 1)
-        (error :syntax-error))
+        (error-with-mem :syntax-error mem))
       (if-let [{:keys [arg body]} (mem/get-func mem name)]
         (let [function-mem (atom @mem)]
           (mem/set-var! function-mem arg (eval-expr (nth args 0) mem))
           (eval-expr body function-mem))
-        (error :undefd-function)))
+        (error-with-mem :undefd-function mem)))
     (let [func (mem/get-func mem name)]
       (if (fn? func)
         (apply func (map #(eval-expr % mem) args))
@@ -52,7 +52,7 @@
               rhs (eval-expr rhs mem)]
           (exec-expr operator lhs rhs))))
 
-    :else (error :syntax-error)))
+    :else (error-with-mem :syntax-error mem)))
 
 (defn- whole-number? [n]
   (== n (int n)))
@@ -96,8 +96,8 @@
      (let [arg-value (eval-print-arg args mem)]
        (recur (drop 1 args) mem (str message arg-value))))))
 
-(defn- eval-print [{:keys [value]} mem]
-  (let [message (eval-print-args value mem)]
+(defn- eval-print [args mem]
+  (let [message (eval-print-args args mem)]
     (print message)))
 
 (defn- eval-let [{name :name expr-node :value} mem]
@@ -106,12 +106,12 @@
 (defn- assignment-expr? [expr]
   (and (instance? Expr expr)) (= (:operator expr) :=))
 
-(defn- eval-top-level-expr [{:keys [value label]} mem]
-  (if (assignment-expr? value)
-    (let [name (-> value :lhs :value)
-          value (eval-expr (:rhs value) mem)]
+(defn- eval-top-level-expr [expr mem]
+  (if (assignment-expr? expr)
+    (let [name (-> expr :lhs :value)
+          value (eval-expr (:rhs expr) mem)]
       (mem/set-var! mem name value))
-    (error :syntax-error label)))
+    (error-with-mem :syntax-error mem)))
 
 (defn- get-user-input [prompt]
   (print prompt)
@@ -177,7 +177,7 @@
       (if (> (mem/get-var mem counter) to)
         (mem/pop-loop-stack! mem)
         (mem/set-jump! mem label)))
-    (error :next-without-for)))
+    (error-with-mem :next-without-for mem)))
 
 (defn- eval-end [mem]
   (mem/clear! mem)
@@ -190,11 +190,11 @@
 (defn- eval-def [def-node mem]
   (mem/define-function! mem def-node))
 
-(defn- eval-node [{:keys [type value label] :as node} mem]
+(defn- eval-node [{:keys [type value label]} mem]
   (case type
-    :print (eval-print node mem)
+    :print (eval-print value mem)
     :let (eval-let value mem)
-    :expr (eval-top-level-expr node mem)
+    :expr (eval-top-level-expr value mem)
     :input (eval-input value mem)
     :if (eval-if value mem)
     :new (mem/clear! mem)
@@ -207,7 +207,7 @@
     :end (eval-end mem)
     :clr (clear-screen)
     :def (eval-def value mem)
-    (error :syntax-error label)))
+    (error-with-mem :syntax-error mem)))
 
 (defn- find-line-index [ast line]
   (if (= line :direct)
@@ -230,7 +230,7 @@
        (do
          (mem/clear-jump! mem)
          (recur ast mem index))
-       (error :undefd-statement))
+       (error-with-mem :undefd-statement mem))
 
      (mem/end? mem)
      (do
@@ -241,5 +241,6 @@
      (if (= (count ast) current)
        mem
        (let [current-node (get ast current)]
+         (mem/set-current-label! mem (:label current-node))
          (eval-node current-node mem)
          (recur ast mem (inc current)))))))
