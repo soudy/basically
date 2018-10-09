@@ -144,7 +144,7 @@
   (defn- get-prec [type] (get-in operators [type :prec]))
   (defn- get-assoc [type] (get-in operators [type :assoc])))
 
-(declare parse-expr-begin)
+(declare parse-top-expr)
 
 (defn- parse-function-call-args
   "Parse a function call's arguments.
@@ -187,14 +187,14 @@
   (cond
     (unary-operator? type)
     (let [prec (get-prec type)
-          [expr tokens] (parse-expr-begin rest prec)]
+          [expr tokens] (parse-top-expr rest prec)]
       [(->Expr type nil expr) tokens])
 
     (function-call? tokens)
     (parse-function-call tokens)
 
     (= type :lparen)
-    (let [[expr tokens] (parse-expr-begin rest)
+    (let [[expr tokens] (parse-top-expr rest)
           [_ tokens] (expect tokens [:rparen])]
       [expr tokens])
 
@@ -203,16 +203,16 @@
 
     :else (error :syntax-error)))
 
-(defn- parse-expr-begin
+(defn- parse-top-expr
   "Parse the beginning of an expression.
 
   Syntax:
     <expr> ::= <expr-value> {<operator> <expr-value>}"
   ([tokens]
-   (parse-expr-begin tokens 0))
+   (parse-top-expr tokens 0))
   ([tokens prec]
    (let [[expr tokens] (parse-expr-value tokens)]
-     (parse-expr-begin tokens prec expr)))
+     (parse-top-expr tokens prec expr)))
   ([[{:keys [type]} & rest :as tokens] operator-prec expr]
    (if-let [current-prec (get-prec type)]
      (if-not (>= current-prec operator-prec)
@@ -220,7 +220,7 @@
        (let [new-prec (case (get-assoc type)
                         :right current-prec
                         :left (inc current-prec))
-             [rhs tokens] (parse-expr-begin rest new-prec)
+             [rhs tokens] (parse-top-expr rest new-prec)
              expr (->Expr type expr rhs)]
          (recur tokens operator-prec expr)))
      [expr tokens])))
@@ -229,7 +229,7 @@
   ([tokens]
    (parse-expr tokens nil))
   ([tokens label]
-   (let [[expr tokens] (parse-expr-begin tokens)]
+   (let [[expr tokens] (parse-top-expr tokens)]
      [(new-node :expr label expr) tokens])))
 
 (defn- parse-if
