@@ -147,8 +147,7 @@
 
 (defn run-file [filename]
   (try
-    (let [program (slurp filename)]
-      (run-program program (mem/init)))
+    (run-program (slurp filename) (mem/init))
     (catch Exception e
       (println (str "Failed reading file: " (.getMessage e)))
       (System/exit 1))))
