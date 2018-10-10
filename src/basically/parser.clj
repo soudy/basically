@@ -238,13 +238,13 @@
   Syntax:
     IF <expr> THEN <expr> | IF <expr> GOTO <integer>"
   [tokens label]
-  (let [[condition [{:keys [type]} & rest :as tokens]] (parse-expr tokens)]
-    (expect tokens [:then :goto])
-    (let [[body tokens] (if (= type :goto)
-                          (parse-jump rest nil :goto)
-                          (parse-node rest))]
-      (expect-end tokens)
-      [(new-node :if label (->IfStmt condition body)) tokens])))
+  (let [[condition tokens] (parse-expr tokens)
+        [{:keys [type]} rest] (expect tokens [:then :goto])
+        [body tokens] (if (= type :goto)
+                        (parse-jump rest nil :goto)
+                        (parse-node rest))]
+    (expect-end tokens)
+    [(new-node :if label (->IfStmt condition body)) tokens]))
 
 (defn- parse-def
   "Parse a function statement.
