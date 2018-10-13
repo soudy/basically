@@ -116,3 +116,7 @@
 (deftest eval-error-message-with-label
   (is (thrown-with-msg? Exception #"\?UNDEF'D STATEMENT ERROR IN 10"
                         (-> "10 GOTO 40" lex parse eval with-out-str))))
+
+(deftest eval-expr-error-message-with-label
+  (is (thrown-with-msg? Exception #"\?TYPE MISMATCH ERROR IN 10"
+                        (-> "10 PRINT 2 + \"2\"" lex parse eval with-out-str))))

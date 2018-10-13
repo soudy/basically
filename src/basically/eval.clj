@@ -47,10 +47,10 @@
       (if (nil? lhs)
         ;; Unary operator
         (let [rhs (eval-expr rhs mem)]
-          (exec-expr operator nil rhs))
+          (exec-expr operator nil rhs mem))
         (let [lhs (eval-expr lhs mem)
               rhs (eval-expr rhs mem)]
-          (exec-expr operator lhs rhs))))
+          (exec-expr operator lhs rhs mem))))
 
     :else (error-with-mem :syntax-error mem)))
 
