@@ -5,7 +5,7 @@ language from the [Commodore 64](https://www.c64-wiki.com/wiki/C64) in Clojure.
 It is _not_ a Commodore 64 emulator, so certain operations like `POKE` and
 `PEEK` are not implemented.
 
-## Usage
+## Building
 
 Run using lein
 
@@ -16,23 +16,22 @@ Build and run standalone JAR
     $ lein uberjar
     $ java -jar ./target/uberjar/basically-VERSION-standalone.jar
 
-## Example
+## Usage
+Start a REPL
+```
+$ basically
+READY.
+PRINT "HELLO WORLD"
+HELLO WORLD
 
-Calculating the factorial of 10.
-
-```BASIC
-10 REM FACTORIAL CALC USING SIMPLE LOOP
-20 N=10 : F=1
-30 FOR I=1 TO N
-40   F = F*I
-50 NEXT
-60 PRINT N"! ="F
+READY.
 ```
 
-Executing program:
-
-    $ basically examples/fibonacci.b
-     10 ! = 3628800
+Run a program
+```
+$ basically examples/factorial.b
+ 10 ! = 3628800
+```
 
 ## License
 
