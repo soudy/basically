@@ -8,7 +8,9 @@
   (:import [basically.parser Node Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
-(declare eval-expr)
+(declare eval-expr
+         eval-node
+         eval)
 
 (def ^:private func-not-found-value 0)
 
@@ -128,16 +130,14 @@
     (when (seq rest)
       (recur (assoc input-stmt :message "?" :variables rest) mem))))
 
-(declare eval-node)
-
 (defn- eval-if [{:keys [condition body]} mem]
   (when (= (eval-expr condition mem) basic-true)
-    (if (and (instance? Node body) (= (:type body) :integer))
-      ;; A single integer node as if body acts as goto
-      (mem/set-jump! mem (:value body))
-      (eval-node body mem))))
-
-(declare eval)
+    (loop [[node & rest :as nodes] body]
+      ;; Evaluate next node in if body if there is one and there is no jump or
+      ;; end set.
+      (when (and nodes (not (mem/get-jump mem)) (not (mem/end? mem)))
+        (eval-node node mem)
+        (recur rest)))))
 
 (defn run-program [program mem]
   (-> program
@@ -206,7 +206,9 @@
     :end (eval-end mem)
     :clr (clear-screen)
     :def (eval-def value mem)
-    (error-with-mem :syntax-error mem)))
+    (
+     (println type value)
+     (error-with-mem :syntax-error mem))))
 
 (defn- find-line-index [ast line]
   (if (= line :direct)

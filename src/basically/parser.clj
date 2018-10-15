@@ -236,15 +236,21 @@
   "Parse an if statement.
 
   Syntax:
-    IF <expr> THEN <expr> | IF <expr> GOTO <integer>"
-  [tokens label]
-  (let [[condition tokens] (parse-expr tokens)
-        [{:keys [type]} rest] (expect tokens [:then :goto])
-        [body tokens] (if (= type :goto)
-                        (parse-jump rest nil :goto)
-                        (parse-node rest))]
-    (expect-end tokens)
-    [(new-node :if label (->IfStmt condition body)) tokens]))
+    IF <expr> THEN {<node>} | IF <expr> GOTO <integer>"
+  ([tokens label]
+   (let [[condition tokens] (parse-expr tokens)
+         [{:keys [type]} tokens] (expect tokens [:then :goto])]
+     (if (= type :goto)
+       (let [[body tokens] (parse-jump tokens nil :goto)]
+         (expect-end tokens)
+         [(new-node :if label (->IfStmt condition [body])) tokens])
+       (parse-if tokens label (->IfStmt condition [])))))
+  ([[{:keys [type]} :as tokens] label {:keys [body] :as if-node}]
+   (if (or (empty? tokens) (= type :newline))
+     [(new-node :if label if-node) tokens]
+     (let [[node tokens] (parse-node tokens)]
+       (recur tokens label (assoc if-node :body (conj body node)))))))
+
 
 (defn- parse-def
   "Parse a function statement.

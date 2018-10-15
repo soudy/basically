@@ -18,7 +18,7 @@
       := (do
            (expect-types (or (and (number? lhs) (number? rhs))
                              (and (string? lhs) (string? rhs))))
-           (if (= lhs rhs) basic-true basic-false))
+           (if (== lhs rhs) basic-true basic-false))
       :<> (do
             (expect-types (or (and (number? lhs) (number? rhs))
                               (and (string? lhs) (string? rhs))))
@@ -36,9 +36,15 @@
            (and (number? lhs) (number? rhs)) (+ lhs rhs)
            (and (string? lhs) (string? rhs)) (str lhs rhs)
            :else (error-with-mem :type-mismatch mem))
-      (:- :* :/) (do
-                   (expect-types (and (number? lhs) (number? rhs)))
-                   (apply-op operator lhs rhs))
+      (:- :*) (do
+                (expect-types (and (number? lhs) (number? rhs)))
+                (apply-op operator lhs rhs))
+      :/ (do
+           (expect-types (and (number? lhs) (number? rhs)))
+           (let [result (/ lhs rhs)]
+             (if-not (integer? result)
+               (float result)
+               result)))
       :unary- (do
                 (expect-types (number? rhs))
                 (- rhs))

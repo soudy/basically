@@ -63,7 +63,7 @@
     (is (= "" stdout))))
 
 (deftest eval-if-goto-statement
-  (let [stdout (-> "10 IF 5 = 5 THEN 30
+  (let [stdout (-> "10 IF 5 = 5 GOTO 30
 20 END
 30 IF 1 <> 2 GOTO 50
 40 END
@@ -120,3 +120,14 @@
 (deftest eval-expr-error-message-with-label
   (is (thrown-with-msg? Exception #"\?TYPE MISMATCH ERROR IN 10"
                         (-> "10 PRINT 2 + \"2\"" lex parse eval with-out-str))))
+
+(deftest eval-collatz-conjecture-program
+  (let [stdout (-> "
+10 REM COLLATZ CONJECTURE
+20 N = 12
+30 PRINT N
+35 IF N = 1 THEN END
+40 IF INT(N / 2) * 2 = N THEN N = N/2 : GOTO 30
+50 N = 3*N+1 : GOTO 30
+" lex parse eval with-out-str)]
+    (is (= " 12\n 6\n 3\n 10\n 5\n 16\n 8\n 4\n 2\n 1\n" stdout))))

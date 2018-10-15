@@ -200,9 +200,9 @@
                                                               :rhs (map->Node {:type :ident
                                                                                :label nil
                                                                                :value "C"})})})})
-                       :body (map->Node {:type :integer
-                                         :label nil
-                                         :value 20})})})
+                       :body [(map->Node {:type :integer
+                                          :label nil
+                                          :value 20})]})})
             (map->Node
              {:type :if
               :label 20
@@ -226,11 +226,11 @@
                                                                  :rhs (map->Node {:type :string
                                                                                   :label nil
                                                                                   :value ""})})})})
-                :body (map->Node {:type :goto
-                                  :label nil
-                                  :value (map->Node {:type :integer
-                                                     :label nil
-                                                     :value 30})})})})]
+                :body [(map->Node {:type :goto
+                                   :label nil
+                                   :value (map->Node {:type :integer
+                                                      :label nil
+                                                      :value 30})})]})})]
            ast))))
 
 (deftest parse-input-statement
