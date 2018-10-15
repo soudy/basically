@@ -206,9 +206,7 @@
     :end (eval-end mem)
     :clr (clear-screen)
     :def (eval-def value mem)
-    (
-     (println type value)
-     (error-with-mem :syntax-error mem))))
+    (error-with-mem :syntax-error mem)))
 
 (defn- find-line-index [ast line]
   (if (= line :direct)
