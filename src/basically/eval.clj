@@ -96,7 +96,7 @@
    (if (empty? args)
      message
      (let [arg-value (eval-print-arg args mem)]
-       (recur (drop 1 args) mem (str message arg-value))))))
+       (recur (rest args) mem (str message arg-value))))))
 
 (defn- eval-print [args mem]
   (let [message (eval-print-args args mem)]
