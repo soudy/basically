@@ -27,7 +27,7 @@
       (if (fn? func)
         (try
           (apply func (map #(eval-expr % mem) args))
-          (catch ArityException e
+          (catch ArityException _
             (error-with-mem :syntax-error mem)))
         func-not-found-value))))
 
