@@ -45,6 +45,8 @@
                 (expect-types (and (number? lhs) (number? rhs)))
                 (apply-op operator lhs rhs))
       :/ (do
+           (when (== rhs 0)
+             (error-with-mem :division-by-zero mem))
            (expect-types (and (number? lhs) (number? rhs)))
            (let [result (/ lhs rhs)]
              (if-not (integer? result)

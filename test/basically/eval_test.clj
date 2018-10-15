@@ -142,3 +142,7 @@
 (deftest eval-syntax-error-on-wrong-arity
   (is (thrown-with-msg? Exception #"\?SYNTAX ERROR IN 10"
                         (-> "10 ABS()" lex parse eval with-out-str))))
+
+(deftest eval-divide-by-zero
+  (is (thrown-with-msg? Exception #"\?DIVISION BY ZERO IN 20"
+                        (-> "10 A = 0\n20 PRINT 10 / A" lex parse eval with-out-str))))
