@@ -11,6 +11,8 @@
 (defrecord LetStmt [name value])
 (defrecord ForLoop [counter counter-value to step])
 
+(declare parse-node parse-top-expr)
+
 (defn- function-call? [[{current :type} {next :type}]]
   (or (= current :fn)
       (and (= current :ident) (= next :lparen))))
@@ -29,8 +31,6 @@
   (if (some #{type} types)
     [current rest]
     (error :syntax-error)))
-
-(declare parse-node)
 
 (defn- expect-and-parse
   "Expect the token on top to be any of `types' and parse it."
@@ -143,8 +143,6 @@
   (defn- unary-operator? [type] (some (partial = type) [:not :unary- :unary+]))
   (defn- get-prec [type] (get-in operators [type :prec]))
   (defn- get-assoc [type] (get-in operators [type :assoc])))
-
-(declare parse-top-expr)
 
 (defn- parse-function-call-args
   "Parse a function call's arguments.

@@ -8,9 +8,7 @@
   (:import [basically.parser Node Expr FuncCall])
   (:refer-clojure :exclude [eval]))
 
-(declare eval-expr
-         eval-node
-         eval)
+(declare eval-expr eval-node eval)
 
 (def ^:private func-not-found-value 0)
 
