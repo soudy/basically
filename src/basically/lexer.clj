@@ -115,7 +115,7 @@
 
 (defn- scan-token [[current :as program] prev-token]
   (cond
-    (whitespace? current) [nil (eat program)]
+    (whitespace? current) (recur (eat program) prev-token) ; Skip whitespace
     (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
     (integer? current) (scan-number program)
     (ident? current) (scan-ident program)
@@ -134,7 +134,4 @@
    (if (empty? program)
      tokens
      (let [[token program] (scan-token program (last tokens))]
-       (if-not (nil? token)
-         (recur program (conj tokens token))
-         ;; If we get no token, we're skipping whitespace
-         (recur program tokens))))))
+       (recur program (conj tokens token))))))
