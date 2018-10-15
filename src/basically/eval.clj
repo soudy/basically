@@ -31,7 +31,7 @@
             (error-with-mem :syntax-error mem)))
         func-not-found-value))))
 
-(defmulti eval-expr (fn [expr mem] (class expr)))
+(defmulti ^:private eval-expr (fn [expr mem] (class expr)))
 
 ;;; Literal expression
 (defmethod eval-expr Node [{:keys [type value]} mem]
