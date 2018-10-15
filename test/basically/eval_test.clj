@@ -54,8 +54,9 @@
 
 (deftest eval-if-statement
   (let [stdout (-> "10 IF 5 = 5 THEN PRINT \"5 equals 5\"
+15 IF 5 THEN PRINT \"Conditions not equal to 0 are true\"
 20 IF 5 <> 5 THEN PRINT \"Something is wrong...\"" lex parse eval with-out-str)]
-    (is (= "5 equals 5\n" stdout))))
+    (is (= "5 equals 5\nConditions not equal to 0 are true\n" stdout))))
 
 (deftest eval-end-statement
   (let [stdout (-> "10 END

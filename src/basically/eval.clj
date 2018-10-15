@@ -129,7 +129,7 @@
       (recur (assoc input-stmt :message "?" :variables rest) mem))))
 
 (defn- eval-if [{:keys [condition body]} mem]
-  (when (= (eval-expr condition mem) basic-true)
+  (when-not (= (eval-expr condition mem) 0)
     (loop [[node & rest :as nodes] body]
       ;; Evaluate next node in if body if there is one and there is no jump or
       ;; end set.
