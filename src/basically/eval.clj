@@ -31,32 +31,31 @@
             (error-with-mem :syntax-error mem)))
         func-not-found-value))))
 
-(defn- eval-expr [expr mem]
-  (cond
-    ;; Literals
-    (instance? Node expr)
-    (let [{:keys [type value]} expr]
-      (case type
-        :expr (eval-expr value mem) ; Expression wrapped in a node
-        :ident (mem/get-var mem value)
-        (:integer :float :string) value))
+(defmulti eval-expr (fn [expr mem] (class expr)))
 
-    ;; Function call
-    (instance? FuncCall expr)
-    (eval-func-call expr mem)
+;;; Literal expression
+(defmethod eval-expr Node [{:keys [type value]} mem]
+  (case type
+    :expr (eval-expr value mem) ; Expression wrapped in a node
+    :ident (mem/get-var mem value)
+    (:integer :float :string) value))
 
-    ;; Operations
-    (instance? Expr expr)
-    (let [{:keys [operator lhs rhs]} expr]
-      (if (nil? lhs)
-        ;; Unary operator
-        (let [rhs (eval-expr rhs mem)]
-          (exec-expr operator nil rhs mem))
-        (let [lhs (eval-expr lhs mem)
-              rhs (eval-expr rhs mem)]
-          (exec-expr operator lhs rhs mem))))
+;;; Function call expression
+(defmethod eval-expr FuncCall [expr mem]
+  (eval-func-call expr mem))
 
-    :else (error-with-mem :syntax-error mem)))
+;;; Arithmetic expression
+(defmethod eval-expr Expr [{:keys [operator lhs rhs]} mem]
+  (if (nil? lhs)
+    ;; Unary operator
+    (let [rhs (eval-expr rhs mem)]
+      (exec-expr operator nil rhs mem))
+    (let [lhs (eval-expr lhs mem)
+          rhs (eval-expr rhs mem)]
+      (exec-expr operator lhs rhs mem))))
+
+(defmethod eval-expr :default [expr mem]
+  (error-with-mem :syntax-error mem))
 
 (defn- whole-number? [n]
   (== n (int n)))

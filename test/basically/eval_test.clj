@@ -144,5 +144,5 @@
                         (-> "10 ABS()" lex parse eval with-out-str))))
 
 (deftest eval-divide-by-zero
-  (is (thrown-with-msg? Exception #"\?DIVISION BY ZERO IN 20"
+  (is (thrown-with-msg? Exception #"\?DIVISION BY ZERO ERROR IN 20"
                         (-> "10 A = 0\n20 PRINT 10 / A" lex parse eval with-out-str))))
