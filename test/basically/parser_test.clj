@@ -211,18 +211,18 @@
                {:condition (map->Node {:type :expr
                                        :label nil
                                        :value (map->Expr
-                                               {:operator :=
-                                                :lhs (map->Node {:type :ident
-                                                                 :label nil
-                                                                 :value "A"})
+                                               {:operator :or
+                                                :lhs (map->Expr {:operator :=
+                                                                 :lhs (map->Node {:type :ident
+                                                                                  :label nil
+                                                                                  :value "A"})
+                                                                 :rhs (map->Node {:type :string
+                                                                                  :label nil
+                                                                                  :value ""})})
                                                 :rhs (map->Expr {:operator :=
-                                                                 :lhs (map->Expr {:operator :or
-                                                                                  :lhs (map->Node {:type :string
-                                                                                                   :label nil
-                                                                                                   :value ""})
-                                                                                  :rhs (map->Node {:type :ident
-                                                                                                   :label nil
-                                                                                                   :value "B"})})
+                                                                 :lhs (map->Node {:type :ident
+                                                                                  :label nil
+                                                                                  :value "B"})
                                                                  :rhs (map->Node {:type :string
                                                                                   :label nil
                                                                                   :value ""})})})})

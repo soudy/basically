@@ -15,14 +15,19 @@
 (defn exec-expr [operator lhs rhs mem]
   (let [expect-types (partial expect-types mem)]
     (case operator
-      := (do
-           (expect-types (or (and (number? lhs) (number? rhs))
-                             (and (string? lhs) (string? rhs))))
-           (if (== lhs rhs) basic-true basic-false))
-      :<> (do
-            (expect-types (or (and (number? lhs) (number? rhs))
-                              (and (string? lhs) (string? rhs))))
-            (if-not (= lhs rhs) basic-true basic-false))
+      (:<> :=) (let [result (cond
+                              (and (number? lhs) (number? rhs))
+                              (if (== lhs rhs) basic-true basic-false)
+
+                              (and (string? lhs) (string? rhs))
+                              (if (= lhs rhs) basic-true basic-false)
+
+                              :else (error-with-mem :type-mismatch mem))]
+                 ;; Bitwise NOT outcome if we're doing inequality check instead
+                 ;; of equality.
+                 (if (= operator :<>)
+                   (bit-not result)
+                   result))
       :or (do
             (expect-types (and (number? lhs) (number? rhs)))
             (bit-or (int lhs) (int rhs)))
