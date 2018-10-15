@@ -1,6 +1,8 @@
 (ns basically.expr
-  (:require [basically.constants :refer :all]
-            [basically.errors :refer [error-with-mem]]))
+  (:require [basically.errors :refer [error-with-mem]]))
+
+(def basic-true -1)
+(def basic-false 0)
 
 (defn- expect-types
   "Expect an expression to be true, otherwise throw a type mismatch error. Used

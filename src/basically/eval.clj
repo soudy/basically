@@ -3,8 +3,7 @@
             [basically.lexer :refer [lex]]
             [basically.parser :refer [parse]]
             [basically.mem :as mem]
-            [basically.errors :refer [error-with-mem]]
-            [basically.constants :refer [basic-true basic-false]])
+            [basically.errors :refer [error-with-mem]])
   (:import [basically.parser Node Expr FuncCall]
            [clojure.lang ArityException])
   (:refer-clojure :exclude [eval]))
