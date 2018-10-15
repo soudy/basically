@@ -5,7 +5,8 @@
             [basically.mem :as mem]
             [basically.errors :refer [error-with-mem]]
             [basically.constants :refer [basic-true basic-false]])
-  (:import [basically.parser Node Expr FuncCall])
+  (:import [basically.parser Node Expr FuncCall]
+           [clojure.lang ArityException])
   (:refer-clojure :exclude [eval]))
 
 (declare eval-expr eval-node eval)
@@ -24,7 +25,10 @@
         (error-with-mem :undefd-function mem)))
     (let [func (mem/get-func mem name)]
       (if (fn? func)
-        (apply func (map #(eval-expr % mem) args))
+        (try
+          (apply func (map #(eval-expr % mem) args))
+          (catch ArityException e
+            (error-with-mem :syntax-error mem)))
         func-not-found-value))))
 
 (defn- eval-expr [expr mem]

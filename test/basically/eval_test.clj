@@ -138,3 +138,7 @@
 20 PRINT 5.0000 <> 5
 30 PRINT \"5\" = \"5\" AND \"5.0\" <> \"5\"" lex parse eval with-out-str)]
     (is (= " -1\n 0\n -1\n" stdout))))
+
+(deftest eval-syntax-error-on-wrong-arity
+  (is (thrown-with-msg? Exception #"\?SYNTAX ERROR IN 10"
+                        (-> "10 ABS()" lex parse eval with-out-str))))
