@@ -14,14 +14,20 @@
 (defn- apply-op [op & args]
   (apply @(resolve (symbol (name op))) args))
 
+(defn- strings? [& args]
+  (every? string? args))
+
+(defn- numbers? [& args]
+  (every? number? args))
+
 (defn exec-expr [operator lhs rhs mem]
   (let [expect-types (partial expect-types mem)]
     (case operator
       (:<> :=) (let [result (cond
-                              (and (number? lhs) (number? rhs))
+                              (numbers? lhs rhs)
                               (if (== lhs rhs) basic-true basic-false)
 
-                              (and (string? lhs) (string? rhs))
+                              (strings? lhs rhs)
                               (if (= lhs rhs) basic-true basic-false)
 
                               :else (error-with-mem :type-mismatch mem))]
@@ -31,25 +37,25 @@
                    (bit-not result)
                    result))
       :or (do
-            (expect-types (and (number? lhs) (number? rhs)))
+            (expect-types (numbers? lhs rhs))
             (bit-or (int lhs) (int rhs)))
       :and (do
-             (expect-types (and (number? lhs) (number? rhs)))
+             (expect-types (numbers? lhs rhs))
              (bit-and (int lhs) (int rhs)))
       :not (do
              (expect-types (number? rhs))
              (bit-not (int rhs)))
       :+ (cond
-           (and (number? lhs) (number? rhs)) (+ lhs rhs)
-           (and (string? lhs) (string? rhs)) (str lhs rhs)
+           (numbers? lhs rhs) (+ lhs rhs)
+           (strings? lhs rhs) (str lhs rhs)
            :else (error-with-mem :type-mismatch mem))
       (:- :*) (do
-                (expect-types (and (number? lhs) (number? rhs)))
+                (expect-types (numbers? lhs rhs))
                 (apply-op operator lhs rhs))
       :/ (do
            (when (== rhs 0)
              (error-with-mem :division-by-zero mem))
-           (expect-types (and (number? lhs) (number? rhs)))
+           (expect-types (numbers? lhs rhs))
            (let [result (/ lhs rhs)]
              (if-not (integer? result)
                (float result)
@@ -61,12 +67,12 @@
                 (expect-types (number? rhs))
                 (+ rhs))
       (:< :<= :> :>=) (cond
-                        (and (number? lhs) (number? rhs))
+                        (numbers? lhs rhs)
                         (if (apply-op operator lhs rhs) basic-true basic-false)
 
                         ;; Compare the ASCII value of the first character
                         ;; when comparing strings
-                        (and (string? lhs) (string? rhs))
+                        (strings? lhs rhs)
                         (if (apply-op operator (int (first lhs)) (int (first rhs)))
                           basic-true
                           basic-false)
