@@ -17,8 +17,11 @@
   (or (= current :fn)
       (and (= current :ident) (= next :lparen))))
 
-(defn- end-delimiter? [[{:keys [type]}]]
-  (or (= type :newline) (= type :colon)))
+(defn- end-of-line? [[{:keys [type]} :as tokens]]
+  (or (empty? tokens) (= type :newline)))
+
+(defn- end-of-statement? [[{:keys [type]} :as tokens]]
+  (or (end-of-line? tokens) (= type :colon)))
 
 (defn- new-node
   ([type] (->Node type nil nil))
@@ -57,7 +60,7 @@
   ([tokens label]
    (parse-print tokens (new-node :print label) []))
   ([[{:keys [type]} & rest :as tokens] node values]
-   (if (or (empty? tokens) (end-delimiter? tokens))
+   (if (end-of-statement? tokens)
      [(assoc node :value values) tokens]
      ;; Print statements specifics. Semicolons mean no break and commas mean
      ;; a tabulator margin.
@@ -84,7 +87,7 @@
        (parse-input tokens label value []))
      (parse-input tokens label nil [])))
   ([tokens label print-message variables]
-   (if (or (empty? tokens) (end-delimiter? tokens))
+   (if (end-of-statement? tokens)
      [(new-node :input label (->InputStmt print-message variables)) tokens]
      (let [[variable [current & rest :as tokens]] (expect-and-parse tokens [:ident])
            new-variables (conj variables variable)]
@@ -118,7 +121,7 @@
     RUN
     RUN 50"
   [tokens label]
-  (if (or (empty? tokens) (end-delimiter? tokens))
+  (if (end-of-statement? tokens)
     [(new-node :run label) tokens]
     (let [[{jump :value} tokens] (expect tokens [:integer])]
       [(new-node :run label jump) tokens])))
@@ -243,8 +246,8 @@
          (expect-end tokens)
          [(new-node :if label (->IfStmt condition [body])) tokens])
        (parse-if tokens label (->IfStmt condition [])))))
-  ([[{:keys [type]} :as tokens] label {:keys [body] :as if-node}]
-   (if (or (empty? tokens) (= type :newline))
+  ([tokens label {:keys [body] :as if-node}]
+   (if (end-of-line? tokens)
      [(new-node :if label if-node) tokens]
      (let [[node tokens] (parse-node tokens)]
        (recur tokens label (assoc if-node :body (conj body node)))))))
@@ -291,7 +294,7 @@
         [{counter-value :value} tokens] (expect tokens [:integer :float])
         [_ tokens] (expect tokens [:to])
         [to tokens] (parse-expr tokens)]
-    (if (or (empty? tokens) (end-delimiter? tokens))
+    (if (end-of-statement? tokens)
       [(new-node :for label (->ForLoop counter counter-value to default-for-step))
        tokens]
       (let [[_ tokens] (expect tokens [:step])
@@ -308,7 +311,7 @@
   ([tokens label]
    (parse-next tokens label []))
   ([tokens label args]
-   (if (or (empty? tokens) (end-delimiter? tokens))
+   (if (end-of-statement? tokens)
      [(new-node :next label args) tokens]
      (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
            new-args (conj args arg)]
@@ -357,9 +360,9 @@
    (if (direct-statement? tokens)
      (parse-line tokens [] nil)
      (parse-line rest [] value)))
-  ([[{:keys [type]} & rest :as tokens] nodes label]
-   (if (or (empty? tokens) (= type :newline))
-     [nodes rest]
+  ([tokens nodes label]
+   (if (end-of-line? tokens)
+     [nodes (rest tokens)]
      (let [[node tokens] (parse-node tokens label)]
        (recur tokens (conj nodes node) label)))))
 
