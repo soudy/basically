@@ -113,13 +113,13 @@
        \" [(->Token :string value) (eat program)]
        (recur (eat program) (str value current))))))
 
-(defn- scan-token [[current :as program] prev-token]
+(defn- scan-token [[current :as program] tokens]
   (cond
-    (whitespace? current) (recur (eat program) prev-token) ; Skip whitespace
+    (whitespace? current) (recur (eat program) tokens) ; Skip whitespace
     (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
     (integer? current) (scan-number program)
     (ident? current) (scan-ident program)
-    (operator? current) (scan-operator program prev-token)
+    (operator? current) (scan-operator program (peek tokens))
     (string? current) (scan-string program)
     (symbol? current) [(->Token (get-symbol-keyword current) current)
                        (eat program)]
@@ -133,5 +133,5 @@
   ([program tokens]
    (if (empty? program)
      tokens
-     (let [[token program] (scan-token program (last tokens))]
+     (let [[token program] (scan-token program tokens)]
        (recur program (conj tokens token))))))
