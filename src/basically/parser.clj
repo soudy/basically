@@ -151,7 +151,7 @@
   "Parse a function call's arguments.
 
   Syntax:
-    <fn-call-args> ::= [<expr>] {\",\" <expr>}"
+    <fn-call-args> ::= [<expr> {\",\" <expr>}]"
   ([tokens]
    (parse-function-call-args tokens []))
   ([[{:keys [type]} :as tokens] args]
@@ -237,7 +237,7 @@
   "Parse an if statement.
 
   Syntax:
-    IF <expr> THEN {<node>} | IF <expr> GOTO <integer>"
+    IF <expr> THEN <statement> {\":\" <statement>} | IF <expr> GOTO <integer>"
   ([tokens label]
    (let [[condition tokens] (parse-expr tokens)
          [{:keys [type]} tokens] (expect tokens [:then :goto])]
@@ -287,7 +287,7 @@
   "Parse a for statement.
 
   Syntax:
-    FOR <ident>=<number> TO <expr> [STEP <number>]"
+    FOR <ident> = <number> TO <expr> [STEP <number>]"
   [tokens label]
   (let [[{counter :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:=])
@@ -307,7 +307,7 @@
   "Parse a next statement.
 
   Syntax:
-    NEXT [<ident>] {\",\" <ident>}"
+    NEXT [<ident> {\",\" <ident>}]"
   ([tokens label]
    (parse-next tokens label []))
   ([tokens label args]
