@@ -172,9 +172,9 @@
    (if (= type :fn)
      (parse-function-call rest true)
      (parse-function-call tokens false)))
-  ([[{:keys [value]} & rest] user-function?]
-   (let [name value
-         [_ tokens] (expect rest [:lparen])
+  ([tokens user-function?]
+   (let [[{name :value} tokens] (expect tokens [:ident])
+         [_ tokens] (expect tokens [:lparen])
          [args tokens] (parse-function-call-args tokens)
          [_ tokens] (expect tokens [:rparen])]
      [(->FuncCall name args user-function?) tokens])))
