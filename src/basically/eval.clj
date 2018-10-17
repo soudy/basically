@@ -139,15 +139,21 @@
         (eval-node node mem)
         (recur rest)))))
 
-(defn run-program [program mem]
-  (-> program
-      lex
-      parse
-      (eval mem)))
+(defn run-program
+  ([program]
+   (-> program
+       lex
+       parse
+       eval))
+  ([program mem]
+   (-> program
+       lex
+       parse
+       (eval mem))))
 
 (defn run-file [filename]
   (try
-    (run-program (slurp filename) (mem/init))
+    (run-program (slurp filename))
     (catch Exception e
       (println (str "Failed reading file: " (.getMessage e)))
       (System/exit 1))))
