@@ -5,7 +5,7 @@ language from the [Commodore 64](https://www.c64-wiki.com/wiki/C64) in Clojure.
 It is _not_ a Commodore 64 emulator, so certain operations like `POKE` and
 `PEEK` are not implemented.
 
-## Building
+## Installation
 
 Run using lein
 
@@ -15,6 +15,8 @@ Build and run standalone JAR
 
     $ lein uberjar
     $ java -jar ./target/uberjar/basically-VERSION-standalone.jar
+
+Or download a jar from the [releases page](https://github.com/soudy/basically/releases).
 
 ## Usage
 Start a REPL
@@ -32,6 +34,7 @@ Run a program
 $ basically examples/factorial.b
  10 ! = 3628800
 ```
+For more examples, see the examples directory.
 
 ## License
 
