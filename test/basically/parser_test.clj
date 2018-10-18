@@ -273,7 +273,7 @@
               :label 10
               :value (map->DefineFunc
                       {:name "SQUARE"
-                       :arg "X"
+                       :param "X"
                        :body (map->Node {:type :expr
                                          :label nil
                                          :value (map->Expr {:operator :*

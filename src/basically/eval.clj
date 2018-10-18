@@ -10,18 +10,21 @@
 
 (declare eval-expr eval-node eval)
 
+(defn- eval-user-func-call [name args mem]
+  (when-not (= (count args) 1)
+    (error-with-mem :syntax-error mem))
+  (if-let [{:keys [param body]} (mem/get-func mem name)]
+    (let [function-mem (atom @mem)
+          arg (eval-expr (nth args 0) mem)]
+      (mem/set-var! function-mem param arg)
+      (eval-expr body function-mem))
+    (error-with-mem :undefd-function mem)))
+
 (def ^:private func-not-found-value 0)
 
 (defn- eval-func-call [{:keys [name args user-function?]} mem]
   (if user-function?
-    (do
-      (when-not (= (count args) 1)
-        (error-with-mem :syntax-error mem))
-      (if-let [{:keys [arg body]} (mem/get-func mem name)]
-        (let [function-mem (atom @mem)]
-          (mem/set-var! function-mem arg (eval-expr (nth args 0) mem))
-          (eval-expr body function-mem))
-        (error-with-mem :undefd-function mem)))
+    (eval-user-func-call name args mem)
     (let [func (mem/get-func mem name)]
       (if (fn? func)
         (try
@@ -102,8 +105,8 @@
   (let [message (eval-print-args args mem)]
     (print message)))
 
-(defn- eval-let [{name :name expr-node :value} mem]
-  (mem/set-var! mem name (eval-expr expr-node mem)))
+(defn- eval-let [{name :name expr :value} mem]
+  (mem/set-var! mem name (eval-expr expr mem)))
 
 (defn- assignment-expr? [expr]
   (and (instance? Expr expr)) (= (:operator expr) :=))

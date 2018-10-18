@@ -26,8 +26,8 @@
 (defn get-var [mem name]
   (get (:variables @mem) (lower-case name) 0))
 
-(defn define-function! [mem {:keys [name arg body]}]
-  (swap! mem assoc-in [:functions (lower-case name)] {:arg arg :body body}))
+(defn define-function! [mem {:keys [name param body]}]
+  (swap! mem assoc-in [:functions (lower-case name)] {:param param :body body}))
 
 (defn get-func [mem name]
   (get (:functions @mem) (lower-case name) nil))

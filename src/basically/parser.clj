@@ -7,7 +7,7 @@
 (defrecord FuncCall [name args user-function?])
 (defrecord IfStmt [condition body])
 (defrecord InputStmt [message variables])
-(defrecord DefineFunc [name arg body])
+(defrecord DefineFunc [name param body])
 (defrecord LetStmt [name value])
 (defrecord ForLoop [counter counter-value to step])
 
@@ -252,7 +252,6 @@
      (let [[node tokens] (parse-node tokens)]
        (recur tokens label (assoc if-node :body (conj body node)))))))
 
-
 (defn- parse-def
   "Parse a function statement.
 
@@ -262,12 +261,12 @@
   (let [[_ tokens] (expect tokens [:fn])
         [{name :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:lparen])
-        [{arg :value} tokens] (expect tokens [:ident])
+        [{param :value} tokens] (expect tokens [:ident])
         [_ tokens] (expect tokens [:rparen])
         [_ tokens] (expect tokens [:=])
         [body tokens] (parse-expr tokens)]
     (expect-end tokens)
-    [(new-node :def label (->DefineFunc name arg body)) tokens]))
+    [(new-node :def label (->DefineFunc name param body)) tokens]))
 
 (defn- parse-let
   "Parse a let statement.
