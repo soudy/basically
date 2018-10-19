@@ -58,17 +58,17 @@
     PRINT 2;4
     PRINT A,B,C;"
   ([tokens label]
-   (parse-print tokens (new-node :print label) []))
-  ([[{:keys [type]} & rest :as tokens] node values]
-   (if (end-of-statement? tokens)
-     [(assoc node :value values) tokens]
-     ;; Print statements specifics. Semicolons mean no break and commas mean
-     ;; a tabulator margin.
-     (case type
-       :semicolon (recur rest node (conj values (new-node :nobreak)))
-       :comma (recur rest node (conj values (new-node :tab-margin)))
-       (let [[value tokens] (parse-node tokens)]
-         (recur tokens node (conj values value)))))))
+   (loop [[{:keys [type]} & rest :as tokens] tokens
+          args []]
+     (if (end-of-statement? tokens)
+       [(new-node :print label args) tokens]
+       ;; Print statements specifics. Semicolons mean no break and commas mean
+       ;; a tabulator margin.
+       (case type
+         :semicolon (recur rest (conj args (new-node :nobreak)))
+         :comma (recur rest (conj args (new-node :tab-margin)))
+         (let [[arg tokens] (parse-node tokens)]
+           (recur tokens (conj args arg))))))))
 
 (defn- parse-input
   "Parse an input statement.
@@ -124,6 +124,7 @@
   (if (end-of-statement? tokens)
     [(new-node :run label) tokens]
     (let [[{jump :value} tokens] (expect tokens [:integer])]
+      (expect-end tokens)
       [(new-node :run label jump) tokens])))
 
 ;; Operators with their precedence and associativity

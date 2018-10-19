@@ -15,7 +15,7 @@
     (error-with-mem :syntax-error mem))
   (if-let [{:keys [param body]} (mem/get-func mem name)]
     (let [function-mem (atom @mem)
-          arg (eval-expr (nth args 0) mem)]
+          arg (eval-expr (first args) mem)]
       (mem/set-var! function-mem param arg)
       (eval-expr body function-mem))
     (error-with-mem :undefd-function mem)))
@@ -223,32 +223,31 @@
     (let [index (keep-indexed #(when (= line (:label %2)) %1) ast)]
       (if-not (seq index)
         nil
-        (nth index 0)))))
+        (first index)))))
 
 (defn eval
   "Evaluate an AST."
   ([ast]
-   (eval ast (mem/init) 0))
+   (eval ast (mem/init)))
   ([ast mem]
-   (eval ast mem 0))
-  ([ast mem current]
-   (cond
-     (mem/get-jump mem)
-     (if-let [index (find-line-index ast (mem/get-jump mem))]
+   (loop [position 0]
+     (cond
+       (mem/get-jump mem)
+       (if-let [index (find-line-index ast (mem/get-jump mem))]
+         (do
+           (mem/clear-jump! mem)
+           (recur index))
+         (error-with-mem :undefd-statement mem))
+
+       (mem/end? mem)
        (do
-         (mem/clear-jump! mem)
-         (recur ast mem index))
-       (error-with-mem :undefd-statement mem))
+         (mem/clear-end! mem)
+         mem)
 
-     (mem/end? mem)
-     (do
-       (mem/clear-end! mem)
-       mem)
-
-     :else
-     (if (= (count ast) current)
-       mem
-       (let [current-node (get ast current)]
-         (mem/set-current-label! mem (:label current-node))
-         (eval-node current-node mem)
-         (recur ast mem (inc current)))))))
+       :else
+       (if (= (count ast) position)
+         mem
+         (let [current-node (get ast position)]
+           (mem/set-current-label! mem (:label current-node))
+           (eval-node current-node mem)
+           (recur (inc position))))))))
