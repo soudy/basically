@@ -20,19 +20,6 @@
       (eval-expr body function-mem))
     (error-with-mem :undefd-function mem)))
 
-(def ^:private func-not-found-value 0)
-
-(defn- eval-func-call [{:keys [name args user-function?]} mem]
-  (if user-function?
-    (eval-user-func-call name args mem)
-    (let [func (mem/get-func mem name)]
-      (if (fn? func)
-        (try
-          (apply func (map #(eval-expr % mem) args))
-          (catch ArityException _
-            (error-with-mem :syntax-error mem)))
-        func-not-found-value))))
-
 (defmulti ^:private eval-expr (fn [expr mem] (class expr)))
 
 ;;; Literal expression
@@ -42,9 +29,19 @@
     :ident (mem/get-var mem value)
     (:integer :float :string) value))
 
+(def ^:private func-not-found-value 0)
+
 ;;; Function call expression
-(defmethod eval-expr FuncCall [expr mem]
-  (eval-func-call expr mem))
+(defmethod eval-expr FuncCall [{:keys [name args user-function?]} mem]
+  (if user-function?
+    (eval-user-func-call name args mem)
+    (let [func (mem/get-func mem name)]
+      (if (fn? func)
+        (try
+          (apply func (map #(eval-expr % mem) args))
+          (catch ArityException _
+            (error-with-mem :syntax-error mem)))
+        func-not-found-value))))
 
 ;;; Arithmetic expression
 (defmethod eval-expr Expr [{:keys [operator lhs rhs]} mem]
