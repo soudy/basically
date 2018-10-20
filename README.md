@@ -31,7 +31,7 @@ READY.
 
 Run a program
 ```
-$ basically examples/factorial.b
+$ basically examples/factorial.bas
  10 ! = 3628800
 ```
 For more examples, see the examples directory.
