@@ -51,10 +51,7 @@
    "mid$" (fn [& args] "") ; TODO: implement MID$
 
 
-   "rnd" (fn [n]
-           (if (not (number? n))
-             (error :type-mismatch)
-             (rand)))
+   "rnd" (fn [] (rand))
 
    "right$" (fn [s n]
               (if (or (not (string? s)) (not (number? n)))
