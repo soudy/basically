@@ -153,16 +153,16 @@
 
   Syntax:
     <fn-call-args> ::= [<expr> {\",\" <expr>}]"
-  ([tokens]
-   (parse-function-call-args tokens []))
-  ([[{:keys [type]} :as tokens] args]
-   (if (= type :rparen)
-     [args tokens]
-     (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
-           new-args (conj args expr)]
-       (if (= type :comma)
-         (recur rest new-args)
-         [new-args tokens])))))
+  [tokens]
+  (loop [[{:keys [type]} :as tokens] tokens
+         args []]
+    (if (= type :rparen)
+      [args tokens]
+      (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
+            new-args (conj args expr)]
+        (if (= type :comma)
+          (recur rest new-args)
+          [new-args tokens])))))
 
 (defn- parse-function-call
   "Parse a function call.
