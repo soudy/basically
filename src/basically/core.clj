@@ -32,9 +32,9 @@
 
 (defn repl []
   (println "READY.")
-  (loop [env (env/init)]
-    (flush)
-    (let [line (read-line)]
+  (let [env (env/init)]
+    (doseq [line (repeatedly read-line)
+            :while line]
       (try
         (if (direct-statement? (lex line))
           (do
@@ -44,8 +44,7 @@
           (env/append-program! env (str line "\n")))
         (catch Exception e
           (println (.getMessage e))
-          (println)))
-      (recur env))))
+          (println))))))
 
 (defn -main [& args]
   (let [{:keys [options arguments summary]} (parse-opts args cli-options)]
