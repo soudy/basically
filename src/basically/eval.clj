@@ -59,7 +59,7 @@
 (defn- whole-number? [n]
   (== n (int n)))
 
-(defn- eval-print-arg [[current & [next] :as args] env]
+(defn- format-print-arg [[current & [next] :as args]]
   ;; Print a newline if we're at the last argument, and it's not a semicolon
   (let [print-newline? (and (= (count args) 1) (not= current :nobreak))
         value (cond
@@ -95,7 +95,7 @@
   ([args env message]
    (if (empty? args)
      message
-     (let [arg-value (eval-print-arg args env)]
+     (let [arg-value (format-print-arg args)]
        (recur (rest args) env (str message arg-value))))))
 
 (defn- eval-print [args env]
