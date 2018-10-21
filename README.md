@@ -20,7 +20,7 @@ Or download a jar from the [releases page](https://github.com/soudy/basically/re
 
 ## Usage
 Start a REPL
-```
+```bash
 $ basically
 READY.
 PRINT "HELLO WORLD"
@@ -30,7 +30,7 @@ READY.
 ```
 
 Run a program
-```
+```bash
 $ basically examples/factorial.bas
  10 ! = 3628800
 ```
