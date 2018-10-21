@@ -13,6 +13,6 @@
                    :division-by-zero "?DIVISION BY ZERO ERROR")]
      (throw (Exception. (str message (when label (str " IN " label))))))))
 
-(defn error-with-mem [type mem]
-  (let [label (:current-label @mem)]
+(defn error-with-env [type env]
+  (let [label (:current-label @env)]
     (error type label)))

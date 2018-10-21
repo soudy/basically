@@ -1,7 +1,7 @@
 (ns basically.eval-test
   (:require [clojure.test :refer :all]
             [basically.eval :refer [run-program]]
-            [basically.mem :as mem])
+            [basically.env :as env])
   (:refer-clojure :exclude [eval]))
 
 (deftest eval-print-statement
@@ -19,30 +19,30 @@
     (is (= " 30\n -180\n -1\n" stdout))))
 
 (deftest eval-assignment
-  (let [mem (-> "10 LET A=20*20
+  (let [env (-> "10 LET A=20*20
 20 B$=\"100\"+\"100\"
 30 C=A/2" run-program)]
     (are [x y] (= x y)
-      (mem/get-var mem "A") 400
-      (mem/get-var mem "B$") "100100"
-      (mem/get-var mem "C") 200)))
+      (env/get-var env "A") 400
+      (env/get-var env "B$") "100100"
+      (env/get-var env "C") 200)))
 
 (deftest eval-function-call
-  (let [mem (-> "10 A=SQR(25) + 10
+  (let [env (-> "10 A=SQR(25) + 10
 20 B=LEFT$(\"Good morning!\", 4)" run-program)]
     (are [x y] (= x y)
-      (mem/get-var mem "A") 15
-      (mem/get-var mem "B") "Good")))
+      (env/get-var env "A") 15
+      (env/get-var env "B") "Good")))
 
 (deftest eval-input-statement
-  (let [mem (mem/init)
+  (let [env (env/init)
         program "10 INPUT \"Please give me 3 numbers\"; A%, B%, C%"
         stdout (with-in-str "4\n10.5\n500"
-                 (with-out-str (run-program program mem)))]
+                 (with-out-str (run-program program env)))]
     (are [x y] (= x y)
-      (mem/get-var mem "A%") 4
-      (mem/get-var mem "B%") 10.5
-      (mem/get-var mem "C%") 500
+      (env/get-var env "A%") 4
+      (env/get-var env "B%") 10.5
+      (env/get-var env "C%") 500
       stdout "Please give me 3 numbers? ?? ?? ")))
 
 (deftest eval-if-statement
@@ -84,10 +84,10 @@
     (is (= " 5\n 5.5\n 6\n 6.5\n 7\n 7.5\n 8\n 8.5\n 9\n 9.5\n 10\n" stdout))))
 
 (deftest eval-run-statement
-  (let [mem (mem/init)
-        _ (mem/append-program! mem "10 PRINT \"Don't run me!\"\n
+  (let [env (env/init)
+        _ (env/append-program! env "10 PRINT \"Don't run me!\"\n
 20 PRINT \"Start!\"")
-        stdout (-> "RUN 20" (run-program mem) with-out-str)]
+        stdout (-> "RUN 20" (run-program env) with-out-str)]
     (is (= "Start!\n" stdout))))
 
 (deftest eval-factorial-program

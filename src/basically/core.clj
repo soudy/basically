@@ -3,7 +3,7 @@
   (:require [basically.lexer :refer [lex]]
             [basically.parser :refer [direct-statement?]]
             [basically.eval :refer [run-program run-file]]
-            [basically.mem :as mem]
+            [basically.env :as env]
             [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.tools.cli :refer [parse-opts]]))
@@ -32,20 +32,20 @@
 
 (defn repl []
   (println "READY.")
-  (loop [mem (mem/init)]
+  (loop [env (env/init)]
     (flush)
     (let [line (read-line)]
       (try
         (if (direct-statement? (lex line))
           (do
-            (run-program line mem)
+            (run-program line env)
             (println)
             (println "READY."))
-          (mem/append-program! mem (str line "\n")))
+          (env/append-program! env (str line "\n")))
         (catch Exception e
           (println (.getMessage e))
           (println)))
-      (recur mem))))
+      (recur env))))
 
 (defn -main [& args]
   (let [{:keys [options arguments summary]} (parse-opts args cli-options)]
