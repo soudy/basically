@@ -57,18 +57,18 @@
     PRINT \"Hello, world!\"
     PRINT 2;4
     PRINT A,B,C;"
-  ([tokens label]
-   (loop [[{:keys [type]} & rest :as tokens] tokens
-          args []]
-     (if (end-of-statement? tokens)
-       [(new-node :print label args) tokens]
-       ;; Print statements specifics. Semicolons mean no break and commas mean
-       ;; a tabulator margin.
-       (case type
-         :semicolon (recur rest (conj args (new-node :nobreak)))
-         :comma (recur rest (conj args (new-node :tab-margin)))
-         (let [[arg tokens] (parse-node tokens)]
-           (recur tokens (conj args arg))))))))
+  [tokens label]
+  (loop [[{:keys [type]} & rest :as tokens] tokens
+         args []]
+    (if (end-of-statement? tokens)
+      [(new-node :print label args) tokens]
+      ;; Print statements specifics. Semicolons mean no break and commas mean
+      ;; a tabulator margin.
+      (case type
+        :semicolon (recur rest (conj args (new-node :nobreak)))
+        :comma (recur rest (conj args (new-node :tab-margin)))
+        (let [[arg tokens] (parse-node tokens)]
+          (recur tokens (conj args arg)))))))
 
 (defn- parse-input
   "Parse an input statement.
