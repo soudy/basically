@@ -308,18 +308,18 @@
 
   Syntax:
     NEXT [<ident> {\",\" <ident>}]"
-  ([tokens label]
-   (parse-next tokens label []))
-  ([tokens label args]
-   (if (end-of-statement? tokens)
-     [(new-node :next label args) tokens]
-     (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
-           new-args (conj args arg)]
-       (if (= next :comma)
-         (recur rest label new-args)
-         (do
-           (expect-end tokens)
-           [(new-node :next label new-args) tokens]))))))
+  [tokens label]
+  (loop [tokens tokens
+         args []]
+    (if (end-of-statement? tokens)
+      [(new-node :next label args) tokens]
+      (let [[arg [{next :type} & rest :as tokens]] (expect-and-parse tokens [:ident])
+            new-args (conj args arg)]
+        (if (= next :comma)
+          (recur rest new-args)
+          (do
+            (expect-end tokens)
+            [(new-node :next label new-args) tokens]))))))
 
 (defn- parse-node
   ([tokens]
@@ -367,10 +367,10 @@
        (recur tokens (conj nodes node) label)))))
 
 (defn parse
-  ([tokens]
-   (parse tokens []))
-  ([tokens ast]
-   (if (empty? tokens)
-     (vec (sort-by :label ast))
-     (let [[node tokens] (parse-line tokens)]
-       (recur tokens (concat ast node))))))
+  [tokens]
+  (loop [tokens tokens
+         ast []]
+    (if (empty? tokens)
+      (vec (sort-by :label ast))
+      (let [[node tokens] (parse-line tokens)]
+        (recur tokens (concat ast node))))))
