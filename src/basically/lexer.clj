@@ -1,7 +1,7 @@
 (ns basically.lexer
   (:require [basically.errors :refer [error]]
             [clojure.string :refer [lower-case join]])
-  (:refer-clojure :exclude [integer? symbol? string?]))
+  (:refer-clojure :exclude [symbol?]))
 
 (defrecord Token [type value])
 
@@ -17,14 +17,14 @@
 
 (let [zero (int \0)
       nine (int \9)]
-  (defn- integer? [c] (<= zero (int c) nine)))
+  (defn- integer-literal? [c] (<= zero (int c) nine)))
 
 (let [lowercase-a (int \a) lowercase-z (int \z)
       uppercase-a (int \A) uppercase-z (int \Z)]
-  (defn- ident? [c]
+  (defn- ident-literal? [c]
     (or (<= lowercase-a (int c) lowercase-z)
         (<= uppercase-a (int c) uppercase-z)
-        (integer? c)
+        (integer-literal? c)
         (= c \$)
         (= c \%))))
 
@@ -55,7 +55,7 @@
   (defn- symbol? [c] (some (partial = c) (keys symbols)))
   (defn- get-symbol-keyword [c] (get symbols c :error)))
 
-(defn- string? [c] (= c \"))
+(defn- string-literal? [c] (= c \"))
 
 (defn- scan-while
   "Scan the program while a condition is true. When this condition is no longer
@@ -72,17 +72,17 @@
   we find a `.' after scanning an integer. If so, it will be considered a float
   and we will scan for integers again to determine the fractional part."
   [program]
-  (let [[token program] (scan-while program integer? :integer)]
+  (let [[token program] (scan-while program integer-literal? :integer)]
     (if (= (top program) \.)
       ;; A dot after integer literal means a float, so scan-while again for the
       ;; fractional part and join them together to get the float value.
-      (let [[decimals program] (scan-while (eat program) integer? :integer)
+      (let [[decimals program] (scan-while (eat program) integer-literal? :integer)
             float-value (str (:value token) "." (:value decimals))]
         [(->Token :float (read-string float-value)) program])
       [(assoc token :value (read-string (:value token))) program])))
 
 (defn- scan-ident [program]
-  (let [[token program] (scan-while program ident? :ident)]
+  (let [[token program] (scan-while program ident-literal? :ident)]
     (if-let [keyword (get-keyword (:value token))]
       [(assoc token :type keyword) program]
       [token program])))
@@ -117,10 +117,10 @@
   (cond
     (whitespace? current) (recur (eat program) tokens) ; Skip whitespace
     (comment? program) (scan-while (eat program 3) (partial not= \newline) :comment)
-    (integer? current) (scan-number program)
-    (ident? current) (scan-ident program)
+    (integer-literal? current) (scan-number program)
+    (ident-literal? current) (scan-ident program)
     (operator? current) (scan-operator program (peek tokens))
-    (string? current) (scan-string program)
+    (string-literal? current) (scan-string program)
     (symbol? current) [(->Token (get-symbol-keyword current) current)
                        (eat program)]
     (= current \newline) [(->Token :newline current) (eat program)]
