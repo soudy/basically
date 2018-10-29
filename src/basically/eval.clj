@@ -130,12 +130,18 @@
     (when (seq rest)
       (recur (assoc input-stmt :message "?" :variables rest) env))))
 
+(defn- stop-evaluating?
+  "Should we stop evaluating a statement body? This is true if control flow
+  statements like GOTO or END are used in a statement body."
+  [env]
+  (or (env/get-jump env) (env/end? env)))
+
 (defn- eval-if [{:keys [condition body]} env]
   (when-not (= (eval-expr condition env) 0)
     (loop [[node & rest :as nodes] body]
       ;; Evaluate next node in if body if there is one and there is no jump or
       ;; end set.
-      (when (and nodes (not (env/get-jump env)) (not (env/end? env)))
+      (when (and nodes (not (stop-evaluating? env)))
         (eval-node node env)
         (recur rest)))))
 
