@@ -174,9 +174,7 @@
 
 (defn- eval-for [{:keys [counter to counter-value] :as for-loop} env]
   (let [for-loop (-> for-loop
-                     (assoc :label (if (nil? (:current-label @env))
-                                     :direct
-                                     (:current-label @env)))
+                     (assoc :label (get-in @env [:current-label] :direct))
                      (assoc :to (eval-expr to env)))]
     (when-not (env/in-loop-stack? env for-loop)
       (env/push-loop-stack! env for-loop)
