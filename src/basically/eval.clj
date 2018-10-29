@@ -53,7 +53,7 @@
           rhs (eval-expr rhs env)]
       (exec-expr operator lhs rhs env))))
 
-(defmethod eval-expr :default [expr env]
+(defmethod eval-expr :default [_ env]
   (error-with-env :syntax-error env))
 
 (defn- whole-number? [n]
