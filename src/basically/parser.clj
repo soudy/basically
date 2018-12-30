@@ -276,8 +276,8 @@
     LET <ident> = <expr>"
   [tokens label]
   (let [[{name :value} tokens] (expect tokens [:ident])
-        [_ tokens] (expect tokens [:=])
-        [value tokens] (parse-expr tokens)]
+        [_ tokens]             (expect tokens [:=])
+        [value tokens]         (parse-expr tokens)]
     (expect-end tokens)
     [(new-node :let label (->LetStmt name value)) tokens]))
 
@@ -369,7 +369,7 @@
 (defn parse
   [tokens]
   (loop [tokens tokens
-         ast []]
+         ast    []]
     (if (empty? tokens)
       (vec (sort-by :label ast))
       (let [[node tokens] (parse-line tokens)]
