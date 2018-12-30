@@ -158,9 +158,9 @@
          args []]
     (if (= type :rparen)
       [args tokens]
-      (let [[expr [{:keys [type]} & rest :as tokens]] (parse-node tokens)
-            new-args (conj args expr)]
-        (if (= type :comma)
+      (let [[expr [next & rest :as tokens]] (parse-node tokens)
+            new-args                        (conj args expr)]
+        (if (= (:type next) :comma)
           (recur rest new-args)
           [new-args tokens])))))
 
@@ -175,9 +175,9 @@
      (parse-function-call tokens false)))
   ([tokens user-function?]
    (let [[{name :value} tokens] (expect tokens [:ident])
-         [_ tokens] (expect tokens [:lparen])
-         [args tokens] (parse-function-call-args tokens)
-         [_ tokens] (expect tokens [:rparen])]
+         [_ tokens]             (expect tokens [:lparen])
+         [args tokens]          (parse-function-call-args tokens)
+         [_ tokens]             (expect tokens [:rparen])]
      [(->FuncCall name args user-function?) tokens])))
 
 (defn- parse-expr-value
@@ -188,7 +188,7 @@
   [[{:keys [type value]} & rest :as tokens]]
   (cond
     (unary-operator? type)
-    (let [prec (get-prec type)
+    (let [prec          (get-prec type)
           [expr tokens] (parse-top-expr rest prec)]
       [(->Expr type nil expr) tokens])
 
@@ -197,7 +197,7 @@
 
     (= type :lparen)
     (let [[expr tokens] (parse-top-expr rest)
-          [_ tokens] (expect tokens [:rparen])]
+          [_ tokens]    (expect tokens [:rparen])]
       [expr tokens])
 
     (some #{type} [:integer :float :ident :string])
@@ -219,11 +219,11 @@
    (if-let [current-prec (get-prec type)]
      (if-not (>= current-prec operator-prec)
        [expr tokens]
-       (let [new-prec (case (get-assoc type)
-                        :right current-prec
-                        :left (inc current-prec))
+       (let [new-prec     (case (get-assoc type)
+                            :right current-prec
+                            :left (inc current-prec))
              [rhs tokens] (parse-top-expr rest new-prec)
-             expr (->Expr type expr rhs)]
+             expr         (->Expr type expr rhs)]
          (recur tokens operator-prec expr)))
      [expr tokens])))
 
@@ -259,12 +259,12 @@
   Syntax:
     DEF FN <ident>\"(\" <ident> \")\" = <expression>"
   [tokens label]
-  (let [[_ tokens] (expect tokens [:fn])
-        [{name :value} tokens] (expect tokens [:ident])
-        [_ tokens] (expect tokens [:lparen])
+  (let [[_ tokens]              (expect tokens [:fn])
+        [{name :value} tokens]  (expect tokens [:ident])
+        [_ tokens]              (expect tokens [:lparen])
         [{param :value} tokens] (expect tokens [:ident])
-        [_ tokens] (expect tokens [:rparen])
-        [_ tokens] (expect tokens [:=])
+        [_ tokens]              (expect tokens [:rparen])
+        [_ tokens]              (expect tokens [:=])
         [body tokens] (parse-expr tokens)]
     (expect-end tokens)
     [(new-node :def label (->DefineFunc name param body)) tokens]))
@@ -290,17 +290,17 @@
     FOR <ident> = <number> TO <expr> [STEP <number>]"
   [tokens label]
   (let [[{counter :value} tokens] (expect tokens [:ident])
-        [_ tokens] (expect tokens [:=])
-        [{counter-value :value} tokens] (expect tokens [:integer :float])
-        [_ tokens] (expect tokens [:to])
-        [to tokens] (parse-expr tokens)]
+        [_ tokens]                (expect tokens [:=])
+        [{value :value} tokens]   (expect tokens [:integer :float])
+        [_ tokens]                (expect tokens [:to])
+        [to tokens]               (parse-expr tokens)]
     (if (end-of-statement? tokens)
-      [(new-node :for label (->ForLoop counter counter-value to default-for-step))
+      [(new-node :for label (->ForLoop counter value to default-for-step))
        tokens]
-      (let [[_ tokens] (expect tokens [:step])
+      (let [[_ tokens]             (expect tokens [:step])
             [{step :value} tokens] (expect tokens [:integer :float])]
         (expect-end tokens)
-        [(new-node :for label (->ForLoop counter counter-value to step))
+        [(new-node :for label (->ForLoop counter value to step))
          tokens]))))
 
 (defn- parse-next

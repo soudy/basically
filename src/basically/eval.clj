@@ -110,7 +110,7 @@
 
 (defn- eval-top-level-expr [expr env]
   (if (assignment-expr? expr)
-    (let [name (-> expr :lhs :value)
+    (let [name  (-> expr :lhs :value)
           value (eval-expr (:rhs expr) env)]
       (env/set-var! env name value))
     (error-with-env :syntax-error env)))
@@ -125,7 +125,7 @@
 
 (defn- eval-input [{message :message [{variable-name :value} & rest] :variables :as input-stmt} env]
   (let [prompt (str message "? ")
-        input (get-user-input prompt)]
+        input  (get-user-input prompt)]
     (env/set-var! env variable-name input)
     (when (seq rest)
       (recur (assoc input-stmt :message "?" :variables rest) env))))
@@ -173,9 +173,9 @@
   (env/set-jump! env value))
 
 (defn- eval-for [{:keys [counter to counter-value] :as for-loop} env]
-  (let [for-loop (-> for-loop
-                     (assoc :label (get-in @env [:current-label] :direct))
-                     (assoc :to (eval-expr to env)))]
+  (let [for-loop (assoc for-loop
+                        :label (get-in @env [:current-label] :direct)
+                        :to (eval-expr to env))]
     (when-not (env/in-loop-stack? env for-loop)
       (env/push-loop-stack! env for-loop)
       (env/set-var! env counter counter-value))))

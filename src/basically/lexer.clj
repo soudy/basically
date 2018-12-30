@@ -77,7 +77,7 @@
       ;; A dot after integer literal means a float, so scan-while again for the
       ;; fractional part and join them together to get the float value.
       (let [[decimals program] (scan-while (eat program) integer-literal? :integer)
-            float-value (str (:value token) "." (:value decimals))]
+            float-value        (str (:value token) "." (:value decimals))]
         [(->Token :float (read-string float-value)) program])
       [(assoc token :value (read-string (:value token))) program])))
 
